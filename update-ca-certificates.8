@@ -1,0 +1,70 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH UPDATE-CA-CERTIFICATES 8 "20 April 2003"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+update-ca-certificates \- update /etc/ssl/certs and certificates.crt
+.SH SYNOPSIS
+.B update-ca-certificates
+.RI [ options ]
+.SH DESCRIPTION
+\fBupdate-ca-certificates\fP updates the directory
+/etc/ssl/certs to hold SSL certificates and generates /etc/ssl/cert.pem,
+a concatenated single-file list of certificates.
+.PP
+It reads the file /etc/ca-certificates.conf. Each line gives a pathname of
+a CA certificate under /usr/share/ca-certificates that should be trusted.
+Lines that begin with "#" are comment lines and thus ignored.
+Lines that begin with "!" are deselected, causing the deactivation
+of the CA certificate in question. All certificates are implicitly
+trusted if no trusted certificates are listed.
+.PP
+Furthermore all certificates found below /usr/local/share/ca-certificates
+are also included as implicitly trusted.
+.PP
+After populating /etc/ssl/certs and creating /etc/ssl/cert.pem
+\fBupdate-ca-certificates\fP invokes custom hooks in
+/etc/ca-certificates/update.d/*.run
+.SH OPTIONS
+A summary of options is included below.
+.TP
+.B \-h, \-\-help
+Show summary of options.
+.TP
+.B \-v, \-\-verbose
+Be verbose. Output \fBc_rehash\fP.
+.TP
+.B \-f, \-\-fresh
+Fresh updates.  Remove symlinks in /etc/ssl/certs directory.
+.SH FILES
+.TP
+.I /etc/ca-certificates.conf
+A configuration file.
+.TP
+.I /etc/ssl/cert.pem
+A single-file version of all CA certificates. Useful for programs
+that cannot handle directory with individual files.
+.TP
+.I /usr/share/ca-certificates
+Directory of CA certificates.
+.I /usr/local/share/ca-certificates
+Directory of local CA certificates.
+.SH SEE ALSO
+.BR c_rehash (1),
+.SH AUTHOR
+This manual page was written by Fumitoshi UKAI <ukai@debian.or.jp>,
+for the Debian project and modified by Ludwig Nussel
+<ludwig.nussel@suse.de>.

@@ -1,0 +1,177 @@
+#!/usr/bin/perl -w
+#
+# update-ca-certificates
+#
+# Copyright (c) 2010 SUSE Linux Products GmbH
+# Author: Ludwig Nussel
+#
+# Inspired by Debian's update-ca-certificates
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02111-1301,
+# USA.
+#
+
+use strict;
+
+use File::Basename;
+use File::Find;
+use Getopt::Long;
+
+my $certsconf = '/etc/ca-certificates.conf';
+my $hooksdir = '/etc/ca-certificates/update.d';
+my $certsdir = "/usr/share/ca-certificates";
+my $localcertsdir = "/usr/local/share/ca-certificates";
+my $etccertsdir = "/etc/ssl/certs";
+
+my (%blacklist, %whitelist, %added, %removed);
+
+my ($opt_verbose, $opt_fresh, $opt_help);
+
+sub startswith($$)
+{
+	return $_[1] eq substr($_[0], 0, length($_[1]));
+}
+
+sub targetfilename($)
+{
+	my $t = $etccertsdir.'/'.basename($_[0]);
+	$t =~ s/\.crt$/.pem/;
+	return $t;
+}
+
+sub addcert($)
+{
+	my $f = $_[0];
+	my $t = targetfilename($f);
+	return if -e $t;
+	unlink $t if -l $t; # dangling symlink
+	if (symlink($f, $t)) {
+		$added{$t} = 1;
+		delete $removed{$f} if exists $removed{$f};
+	} else {
+		print STDERR "symlink of $t failed: $!\n";
+	}
+}
+
+sub removecert($)
+{
+	my $t = targetfilename($_[0]);
+	if (-l $t) {
+		$removed{$t} = 1;
+		unlink $t;
+	}
+}
+
+Getopt::Long::Configure("no_ignore_case");
+GetOptions(
+    "verbose|v"   => \$opt_verbose,
+    "fresh|f"   => \$opt_fresh,
+    "help|h"   => \$opt_help,
+    ) or die "$!\n";
+
+if ($opt_help)
+{
+	print "USAGE: $0 [OPTIONS]\n";
+	print "OPTIIONS:\n";
+	print "  --verbose, -v     verbose output\n";
+	print "  --fresh, -f       start from scratch\n";
+	print "  --help, -h        this screen\n";
+	exit 0;
+}
+
+if (open(F, '<', $certsconf)) {
+	while (<F>) {
+		next if /^#/;
+		chomp;
+		next unless length($_);
+		if (/^!/) {
+			s/^!//;
+			$blacklist{$_} = 1;
+		} else {
+			$whitelist{$_} = 1;
+		}
+	}
+	close F;
+}
+
+print "Updating certificates in $etccertsdir...\n";
+
+if ($opt_fresh || %whitelist) {
+	for my $f (glob "$etccertsdir/*" ) {
+		next unless -l $f;
+		my $l = readlink $f;
+		next unless defined $l;
+		if (startswith($l, $etccertsdir)
+		|| startswith($l, $localcertsdir))
+		{
+			if ($opt_fresh || %whitelist &&
+				!exists($whitelist{basename($l)}))
+			{
+				unlink $f;
+				$removed{$f} = 1;
+			}
+		}
+	}
+}
+
+my @files;
+File::Find::find({
+	no_chdir => 1,
+	wanted => sub {
+		-f && /\.(?:pem|crt)$/ && push @files, $_;
+		}
+	}, $certsdir);
+for my $f (@files) {
+	my $n = substr($f, length($certsdir)+1);
+	if (exists($blacklist{$n})) {
+		removecert($f);
+		next;
+	}
+	next if %whitelist && !exists($whitelist{$n});
+	addcert($f);
+}
+
+for my $f (glob "$localcertsdir/*.{pem,crt}") {
+	addcert($f);
+}
+
+for my $f (glob "$etccertsdir/*.pem") {
+	if (-l $f && !-e $f) {
+		if (startswith($f, $etccertsdir)
+		|| startswith($f, $localcertsdir))
+		{
+			$removed{$f} = 1;
+		}
+		# clean dangling symlinks
+		unlink $f
+	}
+}
+
+if (%added || %removed || $opt_fresh) {
+	chdir $etccertsdir || die "$!";
+	my $redir = ($opt_verbose?'':'> /dev/null');
+	system("c_rehash . $redir");
+
+	my @args;
+	push @args, '-f' if $opt_fresh;
+	push @args, '-v' if $opt_verbose;
+	for my $f (glob "$hooksdir/*.run") {
+		system($f, @args);
+	}
+}
+
+printf("%d added, %d removed.\n",
+	(%added?(scalar keys %added):0),
+	(%removed?(scalar keys %removed):0));

@@ -1,0 +1,37 @@
+#!/bin/bash
+# vim: syntax=sh
+
+cafile="/etc/ssl/ca-bundle.pem"
+cadir="/etc/ssl/certs"
+
+for i in "$@"; do
+	if [ "$i" = "-f" ]; then
+		fresh=1
+	elif [ "$i" = "-v" ]; then
+		verbose=1
+	fi
+done
+
+if [ -z "$fresh" -a "$cafile" -nt "$cadir" ]; then
+	exit 0
+fi
+echo "creating $cafile ..."
+cat > "$cafile.new" <<EOF
+#
+# automatically created by $0. Do not edit!
+# Use of this file is deprecated and should only be used as last
+# resort by applications that cannot parse the $cadir directory.
+#
+EOF
+for i in "$cadir"/*.pem; do
+	# only include certificates trusted for server auth
+	if grep -q "BEGIN TRUSTED CERTIFICATE" "$i"; then
+		trust=`sed -n '/^# openssl-trust=/{s/^.*=//;p;q;}' "$i"`
+		case "$trust" in
+			*serverAuth*) ;;
+			*) [ -z "$verbose" ] || echo "skipping $i" >&2; continue ;;
+		esac
+	fi
+	openssl x509 -in "$i"
+done >> "$cafile.new"
+mv "$cafile.new" "$cafile"
