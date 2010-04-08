@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH UPDATE-CA-CERTIFICATES 8 "20 April 2003"
+.TH UPDATE-CA-CERTIFICATES 8 "08 April 2010"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -16,13 +16,13 @@
 .\" .sp <n>    insert n+1 empty lines
 .\" for manpage-specific macros, see man(7)
 .SH NAME
-update-ca-certificates \- update /etc/ssl/certs and certificates.crt
+update-ca-certificates \- update /etc/ssl/certs and ca-bundle.pem
 .SH SYNOPSIS
 .B update-ca-certificates
 .RI [ options ]
 .SH DESCRIPTION
 \fBupdate-ca-certificates\fP updates the directory
-/etc/ssl/certs to hold SSL certificates and generates /etc/ssl/cert.pem,
+/etc/ssl/certs to hold SSL certificates and generates /etc/ssl/ca-bundle.pem,
 a concatenated single-file list of certificates.
 .PP
 It reads the file /etc/ca-certificates.conf. Each line gives a pathname of
@@ -35,9 +35,10 @@ trusted if no trusted certificates are listed.
 Furthermore all certificates found below /usr/local/share/ca-certificates
 are also included as implicitly trusted.
 .PP
-After populating /etc/ssl/certs and creating /etc/ssl/cert.pem
+After populating /etc/ssl/certs and creating /etc/ssl/ca-bundle.pem
 \fBupdate-ca-certificates\fP invokes custom hooks in
-/etc/ca-certificates/update.d/*.run
+/etc/ca-certificates/update.d/*.run. The command line options used
+for invoking update-ca-certificates are passed to the hooks as well.
 .SH OPTIONS
 A summary of options is included below.
 .TP
@@ -48,15 +49,17 @@ Show summary of options.
 Be verbose. Output \fBc_rehash\fP.
 .TP
 .B \-f, \-\-fresh
-Fresh updates.  Remove symlinks in /etc/ssl/certs directory.
+Fresh updates.  Removes symlinks in /etc/ssl/certs directory and
+re-creates them from scratch.
 .SH FILES
 .TP
 .I /etc/ca-certificates.conf
 A configuration file.
 .TP
-.I /etc/ssl/cert.pem
-A single-file version of all CA certificates. Useful for programs
-that cannot handle directory with individual files.
+.I /etc/ssl/ca-bundle.pem
+A single-file version of all CA certificates. Use of this file is
+deprecated and should only be used as last resort by applications
+that cannot parse the /etc/ssl/certs directory.
 .TP
 .I /usr/share/ca-certificates
 Directory of CA certificates.
