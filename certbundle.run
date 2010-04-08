@@ -1,6 +1,8 @@
 #!/bin/bash
 # vim: syntax=sh
 
+shopt -s nullglob
+
 cafile="/etc/ssl/ca-bundle.pem"
 cadir="/etc/ssl/certs"
 
