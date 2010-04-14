@@ -1,0 +1,72 @@
+#!/bin/bash
+
+unset ${!LC_*} ${!RC_LC_*} LANGUAGE RC_LANG
+export LANG=en_US
+
+set -e
+
+libexecdir="/usr/lib/ca-certificates/java/"
+cafile="/var/lib/ca-certificates/java-cacerts"
+cafile_gcj="/var/lib/ca-certificates/gcj-cacerts"
+cadir="/etc/ssl/certs"
+
+tmppem="$cafile.tmp"
+
+cleanup()
+{
+	rm -rf "$tmppem"
+}
+trap cleanup EXIT
+
+for i in "$@"; do
+	if [ "$i" = "-f" ]; then
+		fresh=1
+	elif [ "$i" = "-v" ]; then
+		verbose=1
+	fi
+done
+
+if [ -z "$fresh" -a "$cafile" -nt "$cadir" ]; then
+	exit 0
+fi
+
+echo "creating $cafile ..."
+umask 0022
+
+if [ -z "$JAVA_HOME" -a -r /etc/profile.d/alljava.sh ]; then
+	. /etc/profile.d/alljava.sh
+fi
+
+if [ -n "$JAVA_HOME" ]; then
+	java="$JAVA_HOME/bin/java"
+else
+	java=`which java`
+fi
+
+if [ ! -x "$java" ]; then
+	echo "java not found"
+	exit 1
+fi
+
+mkdir -p ${cafile%/*}
+mkdir -p "$tmppem"
+for i in "$cadir"/*.pem; do
+	# only include certificates trusted for server auth
+	if grep -q "BEGIN TRUSTED CERTIFICATE" "$i"; then
+		trust=`sed -n '/^# openssl-trust=/{s/^.*=//;p;q;}' "$i"`
+		case "$trust" in
+			*serverAuth*) ;;
+			*) [ -z "$verbose" ] || echo "skipping $i" >&2; continue ;;
+		esac
+		openssl x509 -in "$i" -out "$tmppem/${i##*/}"
+	else
+		ln -s "$i" "$tmppem"
+	fi
+done
+$java -jar $libexecdir/keystore.jar -keystore "$cafile" -cadir "$cadir" "$@"
+if [ -x "$libexecdir"/keystore ]; then
+	echo "creating $cafile_gcj ..."
+	$libexecdir/keystore -keystore "$cafile_gcj" -cadir "$cadir" "$@"
+fi
+
+# vim: syntax=sh
