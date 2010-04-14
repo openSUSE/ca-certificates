@@ -22,21 +22,27 @@ BuildRequires:  openssl
 Name:           ca-certificates
 %define ssletcdir %{_sysconfdir}/ssl
 %define etccadir  %{ssletcdir}/certs
-%define cabundle  %{ssletcdir}/cert.pem
+%define cabundle  %{ssletcdir}/ca-bundle.pem
 %define usrcadir  %{_datadir}/ca-certificates
 License:        GPLv2+
 Group:          Productivity/Networking/Security
 Version:        1
-Release:        1
+Release:        2
 Summary:        Utilities for system wide CA certificate installation
 Source0:        update-ca-certificates
 Source1:        update-ca-certificates.8
 Source2:        GPL-2.0.txt
+Source3:        certbundle.run
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 Url:            http://gitorious.org/opensuse/ca-certificates
 #
 Requires:       openssl
+Recommends:     ca-certificates-mozilla
+# we need to obsolete openssl-certs to make sure it's files are
+# gone when a package providing actual certificates gets
+# installed (bnc#594434).
+Obsoletes:      openssl-certs < 0.9.9
 
 %description
 Utilities for system wide CA certificate installation
@@ -57,6 +63,8 @@ mkdir -p %{buildroot}/%{_mandir}/man8
 mkdir -p %{buildroot}/etc/ca-certificates/update.d
 install -m 644 /dev/null %{buildroot}/%{cabundle}
 install -m 644 /dev/null %{buildroot}/etc/ca-certificates.conf
+# TODO: we should put our distros scripts in /usr really
+install -m 755 %{SOURCE3} %{buildroot}/etc/ca-certificates/update.d
 
 install -m 755 update-ca-certificates %{buildroot}/%{_sbindir}
 install -m 644 update-ca-certificates.8 %{buildroot}/%{_mandir}/man8
@@ -73,6 +81,7 @@ rm -rf %{buildroot}
 %ghost %{cabundle}
 %dir /etc/ca-certificates
 %dir /etc/ca-certificates/update.d
+/etc/ca-certificates/update.d/*
 %{_sbindir}/update-ca-certificates
 %{_mandir}/man8/update-ca-certificates.8*
 
