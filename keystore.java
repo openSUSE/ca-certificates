@@ -43,11 +43,15 @@ public class keystore
 	      java.io.FileNotFoundException,
 	      java.io.IOException
     {
-	char[] password = "changeit".toCharArray();
+	char[] password = null;
 	String ksfilename = null;
 	String cadirname = null;
 	boolean verbose = false;
 	boolean fresh = false;
+
+	if (!System.getProperty("java.vendor").equals("Free Software Foundation, Inc.")) {
+		password = "changeit".toCharArray();
+	}
 
 	for (int i = 0; i < args.length; ++i) {
 	    if (args[i].equals("-keystore")) {
