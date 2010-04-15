@@ -1,0 +1,33 @@
+update-ca-certificates is intended to maintain the system CA
+certificates in /etc/ssl/certs. It does so by symlinking PEM files
+from /usr/share/ca-certificates to /etc/ssl/certs. That way
+distributions and administrators can install additional certificates
+simply via packages.
+
+Differences to Debian
+~~~~~~~~~~~~~~~~~~~~~
+
+- /etc/ca-certificates.conf serves as backlist or whitelist. If
+  it's empty (=default) or only contains entries that start with '!'
+  the file serves as backlist. Any entry that doesn't start with
+  '!' turns the file into a whitelist so each trusted certificate
+  has to be listed explicitly.
+- hook scripts don't receive the list of changed certificates on
+  stdin. That allows scripts have their own method to determine
+  changes.
+- The command line arguments -v and -f are passed to hook scripts.
+- the CA bundle file is generated via hook script too.
+
+OpenSSL trusted certificates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+openSSL supports 'trusted certificates' that can store additional
+usage constraints and a certificate alias. Their PEM file format is
+not supported by other SSL implementations though. So hook scripts
+may need to convert such files to standard PEM format. To avoid
+having to parse openssl output such certificates are expected to
+contain additional "header fields" that list the usage constraints
+and the alias. Example:
+# alias=Deutsche Telekom Root CA 2
+# trust=code-signing email-protection server-auth
+# openssl-trust=codeSigning emailProtection serverAuth
