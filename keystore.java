@@ -36,6 +36,17 @@ public class keystore
 {
     static HashSet<String> blacklist;
 
+    public static void usage() {
+        System.err.println("Usage: java keystore -keystore <keystore_file> -cadir <directory> [-storepass <password>|-f|-v]");
+        System.err.println("");
+        System.err.println("    -keystore <keystore_file>\tname of final keystore (required)");
+        System.err.println("    -cadir <directory>\t\tdirectory contains certificates (required)");
+        System.err.println("    -storepass <password>\tthe password");
+        System.err.println("    -f\t\t\t\tfresh existing keystore");
+        System.err.println("    -v\t\t\t\tbe verbose");
+        System.err.println("    -h/--help\t\t\tshow this help");
+    }
+
     public static void main(String[] args)
 	throws java.security.KeyStoreException,
 	      java.security.NoSuchAlgorithmException,
@@ -48,6 +59,12 @@ public class keystore
 	String cadirname = null;
 	boolean verbose = false;
 	boolean fresh = false;
+
+        if (args.length == 0) {
+            usage();
+            System.exit(1);
+        }
+
 
 	if (!System.getProperty("java.vendor").equals("Free Software Foundation, Inc.")) {
 		password = "changeit".toCharArray();
@@ -64,8 +81,12 @@ public class keystore
 		verbose = true;
 	    } else if (args[i].equals("-f")) {
 		fresh = true;
+	    } else if (args[i].equals("-h") || args[i].equals("--help")) {
+                usage();
+                System.exit(1);
 	    } else {
 		System.err.println("invalid argument: " + args[i]);
+		System.err.println("type -h/--help for help");
 		System.exit(1);
 	    }
 	}
