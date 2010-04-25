@@ -27,7 +27,7 @@ Name:           ca-certificates
 License:        GPLv2+
 Group:          Productivity/Networking/Security
 Version:        1
-Release:        2
+Release:        3
 Summary:        Utilities for system wide CA certificate installation
 Source0:        update-ca-certificates
 Source1:        update-ca-certificates.8
@@ -68,6 +68,12 @@ install -m 755 %{SOURCE3} %{buildroot}/etc/ca-certificates/update.d
 
 install -m 755 update-ca-certificates %{buildroot}/%{_sbindir}
 install -m 644 update-ca-certificates.8 %{buildroot}/%{_mandir}/man8
+
+%post
+# force rebuilding all certificate stores.
+# This also makes sure we update the hash links in /etc/ssl/certs
+# as openssl changed the hash format between 0.9.8 and 1.0
+update-ca-certificates -f || true
 
 %clean
 rm -rf %{buildroot}
