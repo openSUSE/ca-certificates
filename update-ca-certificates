@@ -30,7 +30,8 @@ use File::Find;
 use Getopt::Long;
 
 my $certsconf = '/etc/ca-certificates.conf';
-my $hooksdir = '/etc/ca-certificates/update.d';
+my $hooksdir1 = '/etc/ca-certificates/update.d';
+my $hooksdir2 = '/usr/lib/ca-certificates/update.d';
 my $certsdir = "/usr/share/ca-certificates";
 my $localcertsdir = "/usr/local/share/ca-certificates";
 my $etccertsdir = "/etc/ssl/certs";
@@ -167,7 +168,7 @@ if (%added || %removed || $opt_fresh) {
 	my @args;
 	push @args, '-f' if $opt_fresh;
 	push @args, '-v' if $opt_verbose;
-	for my $f (glob "$hooksdir/*.run") {
+	for my $f (glob("$hooksdir2/*.run"), glob("$hooksdir1/*.run")) {
 		system($f, @args);
 	}
 }

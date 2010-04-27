@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH UPDATE-CA-CERTIFICATES 8 "08 April 2010"
+.TH UPDATE-CA-CERTIFICATES 8 "27 April 2010"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -16,7 +16,7 @@
 .\" .sp <n>    insert n+1 empty lines
 .\" for manpage-specific macros, see man(7)
 .SH NAME
-update-ca-certificates \- update /etc/ssl/certs and ca-bundle.pem
+update-ca-certificates \- update system CA certificates
 .SH SYNOPSIS
 .B update-ca-certificates
 .RI [ options ]
@@ -35,8 +35,8 @@ trusted if no trusted certificates are listed.
 Furthermore all certificates found below /usr/local/share/ca-certificates
 are also included as implicitly trusted.
 .PP
-After populating /etc/ssl/certs and creating /etc/ssl/ca-bundle.pem
-\fBupdate-ca-certificates\fP invokes custom hooks in
+After populating /etc/ssl/certs \fBupdate-ca-certificates\fP invokes
+custom hooks in /usr/lib/ca-certificates/update.d/*.run and
 /etc/ca-certificates/update.d/*.run. The command line options used
 for invoking update-ca-certificates are passed to the hooks as well.
 .SH OPTIONS
