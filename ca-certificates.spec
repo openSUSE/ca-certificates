@@ -22,12 +22,12 @@ BuildRequires:  openssl
 Name:           ca-certificates
 %define ssletcdir %{_sysconfdir}/ssl
 %define etccadir  %{ssletcdir}/certs
-%define cabundle  %{ssletcdir}/ca-bundle.pem
+%define cabundle  /var/lib/ca-certificates/ca-bundle.pem
 %define usrcadir  %{_datadir}/ca-certificates
 License:        GPLv2+
 Group:          Productivity/Networking/Security
 Version:        1
-Release:        3
+Release:        4
 Summary:        Utilities for system wide CA certificate installation
 Source0:        update-ca-certificates
 Source1:        update-ca-certificates.8
@@ -61,15 +61,21 @@ mkdir -p %{buildroot}/%{usrcadir}
 mkdir -p %{buildroot}/%{_sbindir}
 mkdir -p %{buildroot}/%{_mandir}/man8
 mkdir -p %{buildroot}/etc/ca-certificates/update.d
-install -m 644 /dev/null %{buildroot}/%{cabundle}
+mkdir -p %{buildroot}%{_prefix}/lib/ca-certificates/update.d
+install -D -m 644 /dev/null %{buildroot}/%{cabundle}
 install -m 644 /dev/null %{buildroot}/etc/ca-certificates.conf
-# TODO: we should put our distros scripts in /usr really
-install -m 755 %{SOURCE3} %{buildroot}/etc/ca-certificates/update.d
+install -m 755 %{SOURCE3} %{buildroot}%{_prefix}/lib/ca-certificates/update.d
+ln -s %{cabundle} %{buildroot}%{ssletcdir}/ca-bundle.pem
 
 install -m 755 update-ca-certificates %{buildroot}/%{_sbindir}
 install -m 644 update-ca-certificates.8 %{buildroot}/%{_mandir}/man8
 
 %post
+# this is just needed for those updating Factory,
+# can be removed before 11.3
+if [ "$1" -ge 1 ]; then
+  rm -f /etc/ca-certificates/update.d/certbundle.run
+fi
 # force rebuilding all certificate stores.
 # This also makes sure we update the hash links in /etc/ssl/certs
 # as openssl changed the hash format between 0.9.8 and 1.0
@@ -84,10 +90,14 @@ rm -rf %{buildroot}
 %dir %{etccadir}
 %doc COPYING
 %ghost %config(noreplace) /etc/ca-certificates.conf
+%{ssletcdir}/ca-bundle.pem
 %ghost %{cabundle}
 %dir /etc/ca-certificates
 %dir /etc/ca-certificates/update.d
-/etc/ca-certificates/update.d/*
+%dir %{_prefix}/lib/ca-certificates
+%dir %{_prefix}/lib/ca-certificates/update.d
+%dir /var/lib/ca-certificates
+%{_prefix}/lib/ca-certificates/update.d/*
 %{_sbindir}/update-ca-certificates
 %{_mandir}/man8/update-ca-certificates.8*
 
