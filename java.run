@@ -26,11 +26,6 @@ for i in "$@"; do
 	fi
 done
 
-if [ -z "$fresh" -a "$cafile" -nt "$cadir" ]; then
-	exit 0
-fi
-
-echo "creating $cafile ..."
 umask 0022
 
 if [ -z "$JAVA_HOME" -a -r /etc/profile.d/alljava.sh ]; then
@@ -43,10 +38,23 @@ else
 	java=`which java`
 fi
 
-if [ ! -x "$java" ]; then
-	echo "java not found"
-	exit 1
+if [ ! -e "$libexecdir"/keystore.jar -a ! -x "$libexecdir"/keystore ]; then
+	# nothing to do
+	exit 0
 fi
+
+mustrun=
+if [ -n "$fresh" ]; then
+	mustrun=1
+fi
+if [ -e "$libexecdir"/keystore.jar -a "$cadir" -nt "$cafile" ]; then
+	mustrun=1
+fi
+if [ -e "$libexecdir"/keystore -a "$cadir" -nt "$cafile_gcj" ]; then
+	mustrun=1
+fi
+
+[ -n "$mustrun" ] || exit 0
 
 mkdir -p ${cafile%/*}
 mkdir -p "$tmppem"
@@ -63,7 +71,11 @@ for i in "$cadir"/*.pem; do
 		ln -s "$i" "$tmppem"
 	fi
 done
-$java -jar $libexecdir/keystore.jar -keystore "$cafile" -cadir "$cadir" "$@"
+
+if [ -x "$java" ]; then
+	echo "creating $cafile ..."
+	$java -jar $libexecdir/keystore.jar -keystore "$cafile" -cadir "$cadir" "$@"
+fi
 if [ -x "$libexecdir"/keystore ]; then
 	echo "creating $cafile_gcj ..."
 	$libexecdir/keystore -keystore "$cafile_gcj" -cadir "$cadir" "$@"
