@@ -107,8 +107,6 @@ if (open(F, '<', $certsconf)) {
 	close F;
 }
 
-print "Updating certificates in $etccertsdir...\n";
-
 if ($opt_fresh || %whitelist) {
 	for my $f (glob "$etccertsdir/*" ) {
 		next unless -l $f;
@@ -160,19 +158,20 @@ for my $f (glob "$etccertsdir/*.pem") {
 	}
 }
 
+chdir $etccertsdir || die "$!";
 if (%added || %removed || $opt_fresh) {
-	chdir $etccertsdir || die "$!";
+	print "Updating certificates in $etccertsdir...\n";
 	my $redir = ($opt_verbose?'':'> /dev/null');
 	system("c_rehash . $redir");
 
-	my @args;
-	push @args, '-f' if $opt_fresh;
-	push @args, '-v' if $opt_verbose;
-	for my $f (glob("$hooksdir2/*.run"), glob("$hooksdir1/*.run")) {
-		system($f, @args);
-	}
+	printf("%d added, %d removed.\n",
+		(%added?(scalar keys %added):0),
+		(%removed?(scalar keys %removed):0));
 }
 
-printf("%d added, %d removed.\n",
-	(%added?(scalar keys %added):0),
-	(%removed?(scalar keys %removed):0));
+my @args;
+push @args, '-f' if $opt_fresh;
+push @args, '-v' if $opt_verbose;
+for my $f (glob("$hooksdir2/*.run"), glob("$hooksdir1/*.run")) {
+	system($f, @args);
+}
