@@ -3,7 +3,7 @@
 
 shopt -s nullglob
 
-cafile="/etc/ssl/ca-bundle.pem"
+cafile="/var/lib/ca-certificates/ca-bundle.pem"
 cadir="/etc/ssl/certs"
 
 for i in "$@"; do
