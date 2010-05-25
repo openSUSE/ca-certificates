@@ -21,8 +21,8 @@
 
 BuildRequires:  openssl
 %if %{with java}
-BuildRequires:  java-devel
 BuildRequires:  gcc-java
+BuildRequires:  fastjar
 %endif
 
 Name:           ca-certificates
@@ -50,33 +50,24 @@ Recommends:     ca-certificates-mozilla
 # gone when a package providing actual certificates gets
 # installed (bnc#594434).
 Obsoletes:      openssl-certs < 0.9.9
+BuildArch:      noarch
 
 %if %{with java}
-%package -n gcj-compat-ca-certificates
+%package -n java-ca-certificates
 Group:          Productivity/Networking/Security
 Summary:        Utilities CA certificate import to gcj
 Requires(post): ca-certificates
 Supplements:    packageand(gcj-compat:ca-certificates)
-
-%package -n java-ca-certificates
-Group:          Productivity/Networking/Security
-Summary:        Utilities CA certificate import to java
-Requires(post): ca-certificates
-Supplements:    packageand(java-1_6_0-sun:ca-certificates)
 Supplements:    packageand(java-1_6_0-openjdk:ca-certificates)
-
+Supplements:    packageand(java-1_6_0-sun:ca-certificates)
 %endif
 
 %description
 Utilities for system wide CA certificate installation
 
 %if %{with java}
-%description -n gcj-compat-ca-certificates
-Utilities CA certificate import to gcj
-
 %description -n java-ca-certificates
-Utilities CA certificate import to java
-
+Utilities for CA certificate installation for gcj and openjdk Java
 %endif
 
 %prep
@@ -87,9 +78,14 @@ install -m 644 %{SOURCE2} COPYING
 
 %build
 %if %{with java}
-javac -d . %SOURCE4
-jar cfe keystore.jar keystore keystore*.class
-gcj %SOURCE4 --main=keystore -o keystore
+gcj -C %SOURCE4 -d .
+# emulate -e option of jar for fastjar
+cat <<EOF > MANIFEST.MF
+Manifest-Version: 1.0
+Created-By: 0.98
+Main-Class: keystore
+EOF
+fastjar cfm keystore.jar MANIFEST.MF keystore*.class
 %endif
 
 %install
@@ -111,7 +107,6 @@ install -m 644 /dev/null %{buildroot}/var/lib/ca-certificates/ca-bundle.pem
 %if %{with java}
 mkdir -p %{buildroot}%{_prefix}/lib/ca-certificates/java
 install -m 644 keystore.jar %{buildroot}%{_prefix}/lib/ca-certificates/java
-install -m 755 keystore %{buildroot}%{_prefix}/lib/ca-certificates/java
 install -m 644 /dev/null %{buildroot}/var/lib/ca-certificates/java-cacerts
 install -m 644 /dev/null %{buildroot}/var/lib/ca-certificates/gcj-cacerts
 %endif
@@ -128,9 +123,6 @@ fi
 update-ca-certificates -f || true
 
 %if %{with java}
-%post -n gcj-compat-ca-certificates
-update-ca-certificates || true
-
 %post -n java-ca-certificates
 update-ca-certificates || true
 %endif
@@ -157,18 +149,12 @@ rm -rf %{buildroot}
 %ghost /var/lib/ca-certificates/ca-bundle.pem
 
 %if %{with java}
-%files -n gcj-compat-ca-certificates
-%defattr(-, root, root)
-%dir %{_prefix}/lib/ca-certificates/java
-%{_prefix}/lib/ca-certificates/java/keystore
-%ghost /var/lib/ca-certificates/gcj-cacerts
-
 %files -n java-ca-certificates
 %defattr(-, root, root)
 %dir %{_prefix}/lib/ca-certificates/java
 %{_prefix}/lib/ca-certificates/java/keystore.jar
 %ghost /var/lib/ca-certificates/java-cacerts
-
+%ghost /var/lib/ca-certificates/gcj-cacerts
 %endif
 
 %changelog
