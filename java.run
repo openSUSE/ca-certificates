@@ -38,7 +38,11 @@ else
 	java=`which java`
 fi
 
-if [ ! -e "$libexecdir"/keystore.jar -a ! -x "$libexecdir"/keystore ]; then
+if [[ $(readlink -f "${java}") =~ gij ]]; then
+    java=""
+fi
+
+if [ ! -e "$libexecdir"/keystore.jar ]; then
 	# nothing to do
 	exit 0
 fi
@@ -48,9 +52,6 @@ if [ -n "$fresh" ]; then
 	mustrun=1
 fi
 if [ -e "$libexecdir"/keystore.jar -a "$cadir" -nt "$cafile" ]; then
-	mustrun=1
-fi
-if [ -e "$libexecdir"/keystore -a "$cadir" -nt "$cafile_gcj" ]; then
 	mustrun=1
 fi
 
@@ -76,9 +77,9 @@ if [ -x "$java" ]; then
 	echo "creating $cafile ..."
 	$java -jar $libexecdir/keystore.jar -keystore "$cafile" -cadir "$cadir" "$@"
 fi
-if [ -x "$libexecdir"/keystore ]; then
+if [ -x "/usr/bin/gij" ]; then
 	echo "creating $cafile_gcj ..."
-	$libexecdir/keystore -keystore "$cafile_gcj" -cadir "$cadir" "$@"
+	/usr/bin/gij -jar $libexecdir/keystore.jar -keystore "$cafile_gcj" -cadir "$cadir" "$@"
 fi
 
 # vim: syntax=sh
