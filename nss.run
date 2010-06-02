@@ -45,6 +45,8 @@ tmpdir="$dbdir.`date +%Y%m%d%H%M%S`"
 
 mkdir -p "$tmpdir"
 mkdir -p "$tmppem"
+# FIXME: password
+certutil -f /etc/motd -d "sql:$tmpdir" -N
 for i in "$cadir"/*.pem; do
 	alias=`sed -n '/^# alias=/{s/^.*=//;p;q;}' "$i"`
 	if [ -z "$alias" ]; then
@@ -64,7 +66,8 @@ for i in "$cadir"/*.pem; do
 		openssl x509 -in "$i" -out "$tmppem/${i##*/}"
 		i="$tmppem/${i##*/}"
 	fi
-	certutil -d "$tmpdir" -f /dev/null -A -n "$alias" -t "$trust_ssl,$trust_mail,$trust_code" -a  -i "$i"
+	set -- certutil -f /etc/motd -d "sql:$tmpdir" -A -n "$alias" -t "$trust_ssl,$trust_mail,$trust_code" -a  -i "$i"
+	"$@"
 done
 chmod g+r,o+r -R "$tmpdir"
 ln -sf "$tmpdir" "$dbdir.new"
