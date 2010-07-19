@@ -51,7 +51,6 @@ public class keystore
 	throws java.security.KeyStoreException,
 	      java.security.NoSuchAlgorithmException,
 	      java.security.cert.CertificateException,
-	      java.io.FileNotFoundException,
 	      java.io.IOException
     {
 	char[] password = null;
@@ -149,7 +148,13 @@ public class keystore
 	int removed = 0;
 
 	for (int i = 0; i < certs.length; ++i) {
-	    BufferedInputStream f = new BufferedInputStream(new FileInputStream(cadirname+"/"+certs[i]));
+	    BufferedInputStream f;
+	    try {
+		f = new BufferedInputStream(new FileInputStream(cadirname+"/"+certs[i]));
+	    } catch (java.io.FileNotFoundException ex) {
+		System.err.println("skipping " + certs[i] + ": file not found");
+		continue;
+	    }
 	    String marker = "-----BEGIN CERTIFICATE-----";
 	    boolean found = false;
 
