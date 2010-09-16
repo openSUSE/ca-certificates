@@ -17,7 +17,13 @@
 
 # norootforbuild
 
+%bcond_without java
+
 BuildRequires:  openssl
+%if %{with java}
+BuildRequires:  gcc-java
+BuildRequires:  fastjar
+%endif
 
 Name:           ca-certificates
 %define ssletcdir %{_sysconfdir}/ssl
@@ -27,14 +33,15 @@ Name:           ca-certificates
 License:        GPLv2+
 Group:          Productivity/Networking/Security
 Version:        1
-Release:        4
+Release:        5
 Summary:        Utilities for system wide CA certificate installation
 Source0:        update-ca-certificates
 Source1:        update-ca-certificates.8
 Source2:        GPL-2.0.txt
 Source3:        certbundle.run
+Source4:        keystore.java
+Source5:        java.run
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-BuildArch:      noarch
 Url:            http://gitorious.org/opensuse/ca-certificates
 #
 Requires:       openssl
@@ -43,9 +50,28 @@ Recommends:     ca-certificates-mozilla
 # gone when a package providing actual certificates gets
 # installed (bnc#594434).
 Obsoletes:      openssl-certs < 0.9.9
+BuildArch:      noarch
+
+%if %{with java}
+
+%package -n java-ca-certificates
+License:        GPLv2+
+Group:          Productivity/Networking/Security
+Summary:        Utilities CA certificate import to gcj
+Requires(post): ca-certificates
+Supplements:    packageand(gcj-compat:ca-certificates)
+Supplements:    packageand(java-1_6_0-openjdk:ca-certificates)
+Supplements:    packageand(java-1_6_0-sun:ca-certificates)
+%endif
 
 %description
 Utilities for system wide CA certificate installation
+
+%if %{with java}
+
+%description -n java-ca-certificates
+Utilities for CA certificate installation for gcj and openjdk Java
+%endif
 
 %prep
 %setup -qcT
@@ -54,6 +80,16 @@ install -m 644 %{SOURCE1} .
 install -m 644 %{SOURCE2} COPYING
 
 %build
+%if %{with java}
+gcj -C %SOURCE4 -d .
+# emulate -e option of jar for fastjar
+cat <<EOF > MANIFEST.MF
+Manifest-Version: 1.0
+Created-By: 0.98
+Main-Class: keystore
+EOF
+fastjar cfm keystore.jar MANIFEST.MF keystore*.class
+%endif
 
 %install
 mkdir -p %{buildroot}/%{etccadir}
@@ -65,10 +101,18 @@ mkdir -p %{buildroot}%{_prefix}/lib/ca-certificates/update.d
 install -D -m 644 /dev/null %{buildroot}/%{cabundle}
 install -m 644 /dev/null %{buildroot}/etc/ca-certificates.conf
 install -m 755 %{SOURCE3} %{buildroot}%{_prefix}/lib/ca-certificates/update.d
+install -m 755 %{SOURCE5} %{buildroot}%{_prefix}/lib/ca-certificates/update.d
 ln -s %{cabundle} %{buildroot}%{ssletcdir}/ca-bundle.pem
 
 install -m 755 update-ca-certificates %{buildroot}/%{_sbindir}
 install -m 644 update-ca-certificates.8 %{buildroot}/%{_mandir}/man8
+install -m 644 /dev/null %{buildroot}/var/lib/ca-certificates/ca-bundle.pem
+%if %{with java}
+mkdir -p %{buildroot}%{_prefix}/lib/ca-certificates/java
+install -m 644 keystore.jar %{buildroot}%{_prefix}/lib/ca-certificates/java
+install -m 644 /dev/null %{buildroot}/var/lib/ca-certificates/java-cacerts
+install -m 644 /dev/null %{buildroot}/var/lib/ca-certificates/gcj-cacerts
+%endif
 
 %post
 # this is just needed for those updating Factory,
@@ -80,6 +124,12 @@ fi
 # This also makes sure we update the hash links in /etc/ssl/certs
 # as openssl changed the hash format between 0.9.8 and 1.0
 update-ca-certificates -f || true
+
+%if %{with java}
+
+%post -n java-ca-certificates
+update-ca-certificates || true
+%endif
 
 %clean
 rm -rf %{buildroot}
@@ -100,5 +150,16 @@ rm -rf %{buildroot}
 %{_prefix}/lib/ca-certificates/update.d/*
 %{_sbindir}/update-ca-certificates
 %{_mandir}/man8/update-ca-certificates.8*
+%ghost /var/lib/ca-certificates/ca-bundle.pem
+
+%if %{with java}
+
+%files -n java-ca-certificates
+%defattr(-, root, root)
+%dir %{_prefix}/lib/ca-certificates/java
+%{_prefix}/lib/ca-certificates/java/keystore.jar
+%ghost /var/lib/ca-certificates/java-cacerts
+%ghost /var/lib/ca-certificates/gcj-cacerts
+%endif
 
 %changelog
