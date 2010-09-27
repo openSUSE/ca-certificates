@@ -181,6 +181,9 @@ public class keystore
 		try {
 		    X509Certificate cert = (X509Certificate)cf.generateCertificate(f);
 		    if (known.contains(alias)) {
+			// XXX: duplicate aliases for different
+			// certs may happen. need to handle them
+			// somehow
 			if (verbose)
 			    System.out.println("already known: " + alias);
 			known.remove(alias);
