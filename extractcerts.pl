@@ -75,6 +75,11 @@ if (@ARGV && $ARGV[0] eq '--trustbits') {
 	$output_trustbits = 1;
 }
 
+sub colonhex
+{
+  return join(':', unpack("(H2)*", $_[0]));
+}
+
 sub handle_object($)
 {
   my $object = shift;
@@ -83,8 +88,9 @@ sub handle_object($)
     push @certificates, $object;
   } elsif ($object->{'CKA_CLASS'} eq 'CKO_NETSCAPE_TRUST') {
     my $label = $object->{'CKA_LABEL'};
-    die "$label exists" if exists($trusts{$label});
-    $trusts{$label} = $object;
+    my $serial = colonhex($object->{'CKA_SERIAL_NUMBER'});
+    die "$label exists ($serial)" if exists($trusts{$label.$serial});
+    $trusts{$label.$serial} = $object;
   } elsif ($object->{'CKA_CLASS'} eq 'CKO_NETSCAPE_BUILTIN_ROOT_LIST') {
     # ignore
   } else {
@@ -116,11 +122,12 @@ while(<>) {
   }
 
   if( $fields[1] =~ /MULTILINE/ ) {
+    die "expected MULTILINE_OCTAL" unless $fields[1] eq 'MULTILINE_OCTAL';
     $fields[2] = "";
     while(<>) {
       last if /END/;
       chomp;
-      $fields[2] .= $_;
+      $fields[2] .= pack("C", oct($+)) while $_ =~ /\G\\([0-3][0-7][0-7])/g;
     }
   }
 
@@ -133,17 +140,19 @@ while(<>) {
   $object->{$fields[0]} = $fields[2];
 }
 handle_object($object);
+undef $object;
 
 use MIME::Base64;
 for my $cert (@certificates) {
   my $alias = $cert->{'CKA_LABEL'};
-  if(!exists($trusts{$alias})) {
+  my $serial = colonhex($cert->{'CKA_SERIAL_NUMBER'});
+  if(!exists($trusts{$alias.$serial})) {
     print STDERR "NO TRUST: $alias\n";
     next;
   }
   # check trust. We only include certificates that are trusted for identifying
   # web sites
-  my $trust = $trusts{$alias};
+  my $trust = $trusts{$alias.$serial};
   my @addtrust;
   my @addtrust_openssl;
   my $trusted;
@@ -178,16 +187,22 @@ for my $cert (@certificates) {
   my $file = $alias;
   $alias =~ s/'/-/g;
   $file =~ s/[^[:alnum:]\\]+/_/g;
-  $file .= '.pem';
   $file = Encode::encode("UTF-8", $file);
+  if (-e $file.'.pem') {
+    my $i = 1;
+    while (-e $file.".$i.pem") {
+      ++$i;
+    }
+    $file .= ".$i.pem";
+  } else {
+    $file .= '.pem';
+  }
   if (!open(O, '>', $file)) {
 	  print STDERR "$file: $!\n";
 	  next;
   }
   print "$file\n" if $ENV{'VERBOSE'};
   my $value = $cert->{'CKA_VALUE'};
-  my $enc = '';
-  $enc .= pack("C", oct($+)) while $value =~ /\G\\([0-3][0-7][0-7])/g;
   if ($output_trustbits) {
 	  print O "# alias=",Encode::encode("UTF-8", $alias),"\n";
 	  print O "# trust=",join(" ", @addtrust),"\n";
@@ -196,7 +211,7 @@ for my $cert (@certificates) {
 	  }
   }
   print O "-----BEGIN CERTIFICATE-----\n";
-  print O encode_base64($enc);
+  print O encode_base64($value);
   print O "-----END CERTIFICATE-----\n";
   close O;
 }
