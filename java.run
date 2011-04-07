@@ -35,7 +35,7 @@ fi
 if [ -n "$JAVA_HOME" ]; then
 	java="$JAVA_HOME/bin/java"
 else
-	java=`which java`
+	java=`which java 2>/dev/null`
 fi
 
 if [[ $(readlink -f "${java}") =~ gij ]]; then
