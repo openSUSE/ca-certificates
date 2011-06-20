@@ -33,7 +33,7 @@ Name:           ca-certificates
 License:        GPLv2+
 Group:          Productivity/Networking/Security
 Version:        1
-Release:        5
+Release:        8
 Summary:        Utilities for system wide CA certificate installation
 Source0:        update-ca-certificates
 Source1:        update-ca-certificates.8
