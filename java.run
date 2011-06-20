@@ -35,11 +35,13 @@ fi
 if [ -n "$JAVA_HOME" ]; then
 	java="$JAVA_HOME/bin/java"
 else
-	java=`which java 2>/dev/null`
-fi
-
-if [[ $(readlink -f "${java}") =~ gij ]]; then
-    java=""
+	java=`type -P java`
+	if [ -n "$java" -a -L "$java" ]; then
+		java=`readlink -f "$java"`
+		if [ "${java//gij}" != "$java" ]; then
+			java=
+		fi
+	fi
 fi
 
 if [ ! -e "$libexecdir"/keystore.jar ]; then
@@ -73,7 +75,7 @@ for i in "$cadir"/*.pem; do
 	fi
 done
 
-if [ -x "$java" ]; then
+if [ -n "$java" -a -x "$java" ]; then
 	echo "creating $cafile ..."
 	$java -jar $libexecdir/keystore.jar -keystore "$cafile" -cadir "$cadir" "$@"
 fi
