@@ -147,7 +147,7 @@ rm -rf %{buildroot}
 %dir %{_prefix}/lib/ca-certificates
 %dir %{_prefix}/lib/ca-certificates/update.d
 %dir /var/lib/ca-certificates
-%{_prefix}/lib/ca-certificates/update.d/*
+%{_prefix}/lib/ca-certificates/update.d/certbundle.run
 %{_sbindir}/update-ca-certificates
 %{_mandir}/man8/update-ca-certificates.8*
 %ghost /var/lib/ca-certificates/ca-bundle.pem
@@ -157,6 +157,7 @@ rm -rf %{buildroot}
 %files -n java-ca-certificates
 %defattr(-, root, root)
 %dir %{_prefix}/lib/ca-certificates/java
+%{_prefix}/lib/ca-certificates/update.d/java.run
 %{_prefix}/lib/ca-certificates/java/keystore.jar
 %ghost /var/lib/ca-certificates/java-cacerts
 %ghost /var/lib/ca-certificates/gcj-cacerts
