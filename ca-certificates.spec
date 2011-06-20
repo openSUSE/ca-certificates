@@ -1,7 +1,7 @@
 #
-# spec file for package ca-certificates (Version 1)
+# spec file for package ca-certificates
 #
-# Copyright (c) 2010 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2011 SUSE LINUX Products GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -54,6 +54,7 @@ BuildArch:      noarch
 
 %if %{with java}
 
+
 %package -n java-ca-certificates
 License:        GPLv2+
 Group:          Productivity/Networking/Security
@@ -64,20 +65,24 @@ Supplements:    packageand(java-1_6_0-openjdk:ca-certificates)
 Supplements:    packageand(java-1_6_0-sun:ca-certificates)
 %endif
 
+
 %description
 Utilities for system wide CA certificate installation
 
 %if %{with java}
 
+
 %description -n java-ca-certificates
 Utilities for CA certificate installation for gcj and openjdk Java
 %endif
+
 
 %prep
 %setup -qcT
 install -m 755 %{SOURCE0} .
 install -m 644 %{SOURCE1} .
 install -m 644 %{SOURCE2} COPYING
+
 
 %build
 %if %{with java}
@@ -90,6 +95,7 @@ Main-Class: keystore
 EOF
 fastjar cfm keystore.jar MANIFEST.MF keystore*.class
 %endif
+
 
 %install
 mkdir -p %{buildroot}/%{etccadir}
@@ -114,6 +120,7 @@ install -m 644 /dev/null %{buildroot}/var/lib/ca-certificates/java-cacerts
 install -m 644 /dev/null %{buildroot}/var/lib/ca-certificates/gcj-cacerts
 %endif
 
+
 %post
 # this is just needed for those updating Factory,
 # can be removed before 11.3
@@ -127,12 +134,15 @@ update-ca-certificates -f || true
 
 %if %{with java}
 
+
 %post -n java-ca-certificates
 update-ca-certificates || true
 %endif
 
+
 %clean
 rm -rf %{buildroot}
+
 
 %files
 %defattr(-, root, root)
@@ -154,6 +164,7 @@ rm -rf %{buildroot}
 
 %if %{with java}
 
+
 %files -n java-ca-certificates
 %defattr(-, root, root)
 %dir %{_prefix}/lib/ca-certificates/java
@@ -162,5 +173,7 @@ rm -rf %{buildroot}
 %ghost /var/lib/ca-certificates/java-cacerts
 %ghost /var/lib/ca-certificates/gcj-cacerts
 %endif
+
+
 
 %changelog
