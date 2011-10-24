@@ -33,7 +33,7 @@ Name:           ca-certificates
 License:        GPLv2+
 Group:          Productivity/Networking/Security
 Version:        1
-Release:        8
+Release:        12
 Summary:        Utilities for system wide CA certificate installation
 Source0:        update-ca-certificates
 Source1:        update-ca-certificates.8
@@ -45,6 +45,8 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Url:            http://gitorious.org/opensuse/ca-certificates
 #
 Requires:       openssl
+# needed for %post
+Requires:       coreutils
 Recommends:     ca-certificates-mozilla
 # we need to obsolete openssl-certs to make sure it's files are
 # gone when a package providing actual certificates gets
@@ -53,7 +55,6 @@ Obsoletes:      openssl-certs < 0.9.9
 BuildArch:      noarch
 
 %if %{with java}
-
 
 %package -n java-ca-certificates
 License:        GPLv2+
@@ -65,24 +66,20 @@ Supplements:    packageand(java-1_6_0-openjdk:ca-certificates)
 Supplements:    packageand(java-1_6_0-sun:ca-certificates)
 %endif
 
-
 %description
 Utilities for system wide CA certificate installation
 
 %if %{with java}
 
-
 %description -n java-ca-certificates
 Utilities for CA certificate installation for gcj and openjdk Java
 %endif
-
 
 %prep
 %setup -qcT
 install -m 755 %{SOURCE0} .
 install -m 644 %{SOURCE1} .
 install -m 644 %{SOURCE2} COPYING
-
 
 %build
 %if %{with java}
@@ -95,7 +92,6 @@ Main-Class: keystore
 EOF
 fastjar cfm keystore.jar MANIFEST.MF keystore*.class
 %endif
-
 
 %install
 mkdir -p %{buildroot}/%{etccadir}
@@ -120,7 +116,6 @@ install -m 644 /dev/null %{buildroot}/var/lib/ca-certificates/java-cacerts
 install -m 644 /dev/null %{buildroot}/var/lib/ca-certificates/gcj-cacerts
 %endif
 
-
 %post
 # this is just needed for those updating Factory,
 # can be removed before 11.3
@@ -134,15 +129,12 @@ update-ca-certificates -f || true
 
 %if %{with java}
 
-
 %post -n java-ca-certificates
 update-ca-certificates || true
 %endif
 
-
 %clean
 rm -rf %{buildroot}
-
 
 %files
 %defattr(-, root, root)
@@ -164,7 +156,6 @@ rm -rf %{buildroot}
 
 %if %{with java}
 
-
 %files -n java-ca-certificates
 %defattr(-, root, root)
 %dir %{_prefix}/lib/ca-certificates/java
@@ -173,7 +164,5 @@ rm -rf %{buildroot}
 %ghost /var/lib/ca-certificates/java-cacerts
 %ghost /var/lib/ca-certificates/gcj-cacerts
 %endif
-
-
 
 %changelog
