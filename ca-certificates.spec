@@ -30,7 +30,7 @@ Name:           ca-certificates
 %define etccadir  %{ssletcdir}/certs
 %define cabundle  /var/lib/ca-certificates/ca-bundle.pem
 %define usrcadir  %{_datadir}/ca-certificates
-License:        GPLv2+
+License:        GPL-2.0+
 Group:          Productivity/Networking/Security
 Version:        1
 Release:        12
@@ -57,7 +57,7 @@ BuildArch:      noarch
 %if %{with java}
 
 %package -n java-ca-certificates
-License:        GPLv2+
+License:        GPL-2.0+
 Group:          Productivity/Networking/Security
 Summary:        Utilities CA certificate import to gcj
 Requires(post): ca-certificates
