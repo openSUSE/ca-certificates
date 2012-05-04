@@ -21,8 +21,12 @@ echo "creating $cafile ..."
 cat > "$cafile.new" <<EOF
 #
 # automatically created by $0. Do not edit!
+#
 # Use of this file is deprecated and should only be used as last
 # resort by applications that cannot parse the $cadir directory.
+# You should avoid hardcoding any paths in applications anyways though.
+# Use e.g.
+# SSL_CTX_set_default_verify_paths() instead.
 #
 EOF
 for i in "$cadir"/*.pem; do
