@@ -99,9 +99,12 @@ for my $f (<"$etccertsdir/*.pem">) {
 	}
 	if (-e $f) {
 		my $d = readlink($f);
-		unless ($d && startswith($d, "$pemdir")) {
-			print STDERR "wrong symlink $f removed *)\n";
-			$foundignored = 1;
+		unless ($d && startswith($d, $pemdir)) {
+			# don't warn about the symlinks we had in the distro before
+			unless (startswith($d, "/usr/share/ca-certificates/")) {
+				print STDERR "wrong symlink $f removed *)\n";
+				$foundignored = 1;
+			}
 			unlink $f
 		}
 	} else {
