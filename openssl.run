@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e
+
+cadir="/var/lib/ca-certificates/openssl"
+
+
+for i in "$@"; do
+	if [ "$i" = "-f" ]; then
+		fresh=1
+	elif [ "$i" = "-v" ]; then
+		verbose=1
+	fi
+done
+
+[ -z "$verbose" ] || echo "creating $cadir ..."
+p11-kit extract --format=openssl-directory --filter=ca-anchors --overwrite $cadir
+
+# vim: syntax=sh
