@@ -1,0 +1,127 @@
+#!/usr/bin/perl -w
+# vim:syntax=perl
+#
+# Copyright (c) 2010,2013 SUSE Linux Products GmbH
+# Author: Ludwig Nussel
+#
+# update /etc/ssl/certs for compatibility with legacy applications
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02111-1301,
+# USA.
+#
+
+use strict;
+
+use File::Basename;
+use Getopt::Long;
+
+my $etccertsdir = "/etc/ssl/certs";
+my $pemdir = "/var/lib/ca-certificates/pem";
+my $foundignored;
+
+my (%added, %removed);
+
+my %options;
+
+sub startswith($$)
+{
+	return $_[1] eq substr($_[0], 0, length($_[1]));
+}
+
+sub targetfilename($)
+{
+	my $t = $etccertsdir.'/'.basename($_[0]);
+	return $t;
+}
+
+sub addcert($)
+{
+	my $f = $_[0];
+	my $t = targetfilename($f);
+	if (-l $t) {
+		my $d = readlink($t);
+		return if ($d && $d eq $f);
+		print STDERR "wrong symlink $d removed *)\n";
+		$foundignored = 1;
+		unlink($t);
+	} elsif (-e $t) {
+		print STDERR "$t in the way *)\n";
+		$foundignored = 1;
+		return;
+	}
+	if (symlink($f, $t)) {
+		$added{$t} = 1;
+	} else {
+		print STDERR "symlink of $t failed: $!\n";
+	}
+}
+
+sub removecert($)
+{
+	my $t = targetfilename($_[0]);
+	if (-l $t) {
+		$removed{$t} = 1;
+		unlink $t;
+	}
+}
+
+GetOptions(
+	\%options,
+	"verbose|v",
+	"fresh|f",
+	"help|h",
+    ) or die "$!\n";
+
+system("p11-kit", "extract", "--purpose=server-auth", "--filter=ca-anchors", "--format=pem-directory", "-f", $pemdir) == 0 or die;
+
+for my $f (<"$pemdir/*.pem">) {
+	addcert($f);
+}
+
+# clean dangling symlinks
+for my $f (<"$etccertsdir/*.pem">) {
+	unless (-l $f) {
+		print STDERR "$f is wrong here *)\n";
+		$foundignored = 1;
+		next;
+	}
+	if (-e $f) {
+		my $d = readlink($f);
+		unless ($d && startswith($d, "$pemdir")) {
+			print STDERR "wrong symlink $f removed *)\n";
+			$foundignored = 1;
+			unlink $f
+		}
+	} else {
+		$removed{$f} = 1;
+		unlink $f
+	}
+}
+
+chdir $etccertsdir || die "$!";
+if (%added || %removed || $options{fresh}) {
+	print "Updating certificates in $etccertsdir...\n" if $options{verbose};
+	my $redir = ($options{verbose}?'':'> /dev/null');
+	system("c_rehash . $redir");
+	printf("%d added, %d removed.\n",
+		(%added?(scalar keys %added):0),
+		(%removed?(scalar keys %removed):0));
+}
+
+if ($foundignored)
+{
+	print STDERR "\n* = CA Certificates in /etc/ssl/certs are only seen by some legacy applications.
+To install CA-Certificates globally move them to /etc/pki/trust/ancors instead!\n";
+}

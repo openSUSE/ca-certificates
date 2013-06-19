@@ -17,7 +17,7 @@ done
 if [ -z "$fresh" -a "$cafile" -nt "$cadir" ]; then
 	exit 0
 fi
-echo "creating $cafile ..."
+[ -z "$verbose" ] || echo "creating $cafile ..."
 cat > "$cafile.new" <<EOF
 #
 # automatically created by $0. Do not edit!
