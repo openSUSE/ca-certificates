@@ -13,6 +13,9 @@ install:
 	install -D -m 644 update-ca-certificates.8 $(DESTDIR)$(mandir)/man8/update-ca-certificates.8
 	for i in *.run; do install -D -m 755 $$i $(DESTDIR)$(pkglibdir)/update.d/$$i; done
 
+package:
+	obs/mkpackage
+
 clean:
 
-.PHONY: all install clean
+.PHONY: all install clean package
