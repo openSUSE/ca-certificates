@@ -5,18 +5,10 @@ export LANG=en_US
 
 set -e
 
-libexecdir="/usr/lib/ca-certificates/java/"
 cafile="/var/lib/ca-certificates/java-cacerts"
 cafile_gcj="/var/lib/ca-certificates/gcj-cacerts"
-cadir="/etc/ssl/certs"
+cadir="/var/lib/ca-certificates/pem"
 
-tmppem="$cafile.tmp"
-
-cleanup()
-{
-	rm -rf "$tmppem"
-}
-trap cleanup EXIT
 
 for i in "$@"; do
 	if [ "$i" = "-f" ]; then
@@ -26,62 +18,19 @@ for i in "$@"; do
 	fi
 done
 
-umask 0022
-
-if [ -z "$JAVA_HOME" -a -r /etc/profile.d/alljava.sh ]; then
-	. /etc/profile.d/alljava.sh
-fi
-
-if [ -n "$JAVA_HOME" ]; then
-	java="$JAVA_HOME/bin/java"
-else
-	java=`type -P java`
-	if [ -n "$java" -a -L "$java" ]; then
-		java=`readlink -f "$java"`
-		if [ "${java//gij}" != "$java" ]; then
-			java=
-		fi
-	fi
-fi
-
-if [ ! -e "$libexecdir"/keystore.jar ]; then
-	# nothing to do
-	exit 0
-fi
-
 mustrun=
 if [ -n "$fresh" ]; then
 	mustrun=1
 fi
-if [ -e "$libexecdir"/keystore.jar -a "$cadir" -nt "$cafile" ]; then
+if [ "$cadir" -nt "$cafile" ]; then
 	mustrun=1
 fi
 
 [ -n "$mustrun" ] || exit 0
 
 mkdir -p ${cafile%/*}
-mkdir -p "$tmppem"
-for i in "$cadir"/*.pem; do
-	# only include certificates trusted for server auth
-	if grep -q "BEGIN TRUSTED CERTIFICATE" "$i"; then
-		trust=`sed -n '/^# openssl-trust=/{s/^.*=//;p;q;}' "$i"`
-		case "$trust" in
-			*serverAuth*) ;;
-			*) [ -z "$verbose" ] || echo "skipping $i" >&2; continue ;;
-		esac
-		openssl x509 -in "$i" -out "$tmppem/${i##*/}"
-	else
-		ln -s "$i" "$tmppem"
-	fi
-done
 
-if [ -n "$java" -a -x "$java" ]; then
-	echo "creating $cafile ..."
-	$java -jar $libexecdir/keystore.jar -keystore "$cafile" -cadir "$cadir" "$@"
-fi
-if [ -x "/usr/bin/gij" ]; then
-	echo "creating $cafile_gcj ..."
-	/usr/bin/gij -jar $libexecdir/keystore.jar -keystore "$cafile_gcj" -cadir "$cadir" "$@"
-fi
+echo "creating $cafile ..."
+p11-kit extract --format=java-cacerts --purpose=server-auth --filter=ca-anchors --overwrite $cafile
 
 # vim: syntax=sh

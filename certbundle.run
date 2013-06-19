@@ -1,10 +1,10 @@
 #!/bin/bash
 # vim: syntax=sh
 
-shopt -s nullglob
+set -e
 
 cafile="/var/lib/ca-certificates/ca-bundle.pem"
-cadir="/etc/ssl/certs"
+cadir="/var/lib/ca-certificates/pem"
 
 for i in "$@"; do
 	if [ "$i" = "-f" ]; then
@@ -23,21 +23,15 @@ cat > "$cafile.new" <<EOF
 # automatically created by $0. Do not edit!
 #
 # Use of this file is deprecated and should only be used as last
-# resort by applications that cannot parse the $cadir directory.
-# You should avoid hardcoding any paths in applications anyways though.
-# Use e.g.
-# SSL_CTX_set_default_verify_paths() instead.
+# resort by applications that do not support p11-kit or reading /etc/ssl/certs.
+# You should avoid hardcoding any paths in applications anyways though. Use
+# functions that know the operating system defaults instead:
+#
+# - openssl: SSL_CTX_set_default_verify_paths()
+# - gnutls: gnutls_x509_trust_list_add_system_trust()
 #
 EOF
-for i in "$cadir"/*.pem; do
-	# only include certificates trusted for server auth
-	if grep -q "BEGIN TRUSTED CERTIFICATE" "$i"; then
-		trust=`sed -n '/^# openssl-trust=/{s/^.*=//;p;q;}' "$i"`
-		case "$trust" in
-			*serverAuth*) ;;
-			*) [ -z "$verbose" ] || echo "skipping $i" >&2; continue ;;
-		esac
-	fi
-	openssl x509 -in "$i"
-done >> "$cafile.new"
+p11-kit extract --format=pem-bundle --purpose=server-auth --filter=ca-anchors $cafile.tmp
+cat $cafile.tmp >> $cafile.new
+rm -f $cafile.tmp
 mv "$cafile.new" "$cafile"

@@ -2,7 +2,7 @@
 #
 # update-ca-certificates
 #
-# Copyright (c) 2010 SUSE Linux Products GmbH
+# Copyright (c) 2010,2013 SUSE Linux Products GmbH
 # Author: Ludwig Nussel
 #
 # Inspired by Debian's update-ca-certificates
@@ -26,17 +26,16 @@
 use strict;
 
 use File::Basename;
-use File::Find;
 use Getopt::Long;
 
-my $certsconf = '/etc/ca-certificates.conf';
 my $hooksdir1 = '/etc/ca-certificates/update.d';
 my $hooksdir2 = '/usr/lib/ca-certificates/update.d';
-my $certsdir = "/usr/share/ca-certificates";
-my $localcertsdir = "/usr/local/share/ca-certificates";
 my $etccertsdir = "/etc/ssl/certs";
+my $localstatedir = '/var/lib/ca-certificates';
+my $pemdir = "$localstatedir/pem";
+my $foundignored;
 
-my (%blacklist, %whitelist, %added, %removed);
+my (%added, %removed);
 
 my ($opt_verbose, $opt_fresh, $opt_help);
 
@@ -48,7 +47,6 @@ sub startswith($$)
 sub targetfilename($)
 {
 	my $t = $etccertsdir.'/'.basename($_[0]);
-	$t =~ s/\.crt$/.pem/;
 	return $t;
 }
 
@@ -56,11 +54,19 @@ sub addcert($)
 {
 	my $f = $_[0];
 	my $t = targetfilename($f);
-	return if -e $t;
-	unlink $t if -l $t; # dangling symlink
+	if (-l $t) {
+		my $d = readlink($t);
+		return if ($d && $d eq $f);
+		print STDERR "wrong symlink $f removed *)\n";
+		$foundignored = 1;
+		unlink($t);
+	} elsif (-e $t) {
+		print STDERR "$t in the way *)\n";
+		$foundignored = 1;
+		return;
+	}
 	if (symlink($f, $t)) {
 		$added{$t} = 1;
-		delete $removed{$f} if exists $removed{$f};
 	} else {
 		print STDERR "symlink of $t failed: $!\n";
 	}
@@ -92,78 +98,37 @@ if ($opt_help)
 	exit 0;
 }
 
-if (open(F, '<', $certsconf)) {
-	while (<F>) {
-		next if /^#/;
-		chomp;
-		next unless length($_);
-		if (/^!/) {
-			s/^!//;
-			$blacklist{$_} = 1;
-		} else {
-			$whitelist{$_} = 1;
-		}
-	}
-	close F;
+system("p11-kit", "extract", "--filter=ca-anchors", "--format=pem-directory", "-f", $pemdir) == 0 or die;
+
+for my $f (<"$pemdir/*.pem">) {
+	addcert($f);
 }
 
-if ($opt_fresh || %whitelist) {
-	for my $f (glob "$etccertsdir/*" ) {
-		next unless -l $f;
-		my $l = readlink $f;
-		next unless defined $l;
-		if (startswith($l, $etccertsdir)
-		|| startswith($l, $localcertsdir))
-		{
-			if ($opt_fresh || %whitelist &&
-				!exists($whitelist{basename($l)}))
-			{
-				unlink $f;
-				$removed{$f} = 1;
-			}
-		}
-	}
-}
-
-my @files;
-File::Find::find({
-	no_chdir => 1,
-	wanted => sub {
-		-f && /\.(?:pem|crt)$/ && push @files, $_;
-		}
-	}, $certsdir);
-for my $f (@files) {
-	my $n = substr($f, length($certsdir)+1);
-	if (exists($blacklist{$n})) {
-		removecert($f);
+# clean dangling symlinks
+for my $f (<"$etccertsdir/*.pem">) {
+	unless (-l $f) {
+		print STDERR "$f is wrong here *)\n";
+		$foundignored = 1;
 		next;
 	}
-	next if %whitelist && !exists($whitelist{$n});
-	addcert($f);
-}
-
-for my $f (glob "$localcertsdir/*.{pem,crt}") {
-	addcert($f);
-}
-
-for my $f (glob "$etccertsdir/*.pem") {
-	if (-l $f && !-e $f) {
-		if (startswith($f, $etccertsdir)
-		|| startswith($f, $localcertsdir))
-		{
-			$removed{$f} = 1;
+	if (-e $f) {
+		my $d = readlink($f);
+		unless ($d && startswith($d, "$pemdir")) {
+			print STDERR "wrong symlink $f removed *)\n";
+			$foundignored = 1;
+			unlink $f
 		}
-		# clean dangling symlinks
+	} else {
+		$removed{$f} = 1;
 		unlink $f
 	}
 }
 
 chdir $etccertsdir || die "$!";
 if (%added || %removed || $opt_fresh) {
-	print "Updating certificates in $etccertsdir...\n";
-	my $redir = ($opt_verbose?'':'> /dev/null');
-	system("c_rehash . $redir");
-
+       print "Updating certificates in $etccertsdir...\n";
+       my $redir = ($opt_verbose?'':'> /dev/null');
+       system("c_rehash . $redir");
 	printf("%d added, %d removed.\n",
 		(%added?(scalar keys %added):0),
 		(%removed?(scalar keys %removed):0));
@@ -172,6 +137,13 @@ if (%added || %removed || $opt_fresh) {
 my @args;
 push @args, '-f' if $opt_fresh;
 push @args, '-v' if $opt_verbose;
-for my $f (glob("$hooksdir2/*.run"), glob("$hooksdir1/*.run")) {
+for my $f (sort(glob("$hooksdir2/*.run"), glob("$hooksdir1/*.run"))) {
 	system($f, @args);
+}
+
+if ($foundignored)
+{
+	print STDERR "\n* = CA Certificates in /etc/ssl/certs are only seen by openSSL.
+To install CA-Certificates globally move them to
+/etc/pki/trust/ancors instead!";
 }
