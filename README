@@ -7,7 +7,7 @@ update-ca-certificates is intended to keep the certificate stores of
 various components in sync with the system CA certificates.
 
 The canonical source of CA certificates is what p11-kit knows about.
-By default p11-kit looks into /usr/share/ca-certificates/anchors
+By default p11-kit looks into /usr/share/pki/anchors
 resp /etc/pki/trust/anchors but there could be other plugins that
 serve as source for certificates as well.
 
@@ -35,17 +35,18 @@ Differences to previous versions on openSUSE
 ============================================
 
 - Packages are expected to install their CA certificates in
-  /usr/share/ca-certificates/anchors/ now.
+  /usr/share/pki/anchors/ (no extra subdir) intead of
+  /usr/share/ca-certificates/<vendor> now.
 
-- /etc/ca-certificates.conf is no longer supported. Symlink the
-  certificate you don't want to /etc/pki/trust/blacklist.
+- /etc/ca-certificates.conf is no longer supported. Just symlink the
+  certificates you don't want to /etc/pki/trust/blacklist.
 
 Differences to Debian
 =====================
 
 - /etc/ca-certificates.conf is not supported.
 - Hook scripts don't receive the list of changed certificates on
-  stdin. That allows scripts have their own method to determine
+  stdin. That allows scripts to have their own method to determine
   changes.
 - The command line arguments -v and -f are passed to hook scripts.
 - All stores are created via hook scripts.
