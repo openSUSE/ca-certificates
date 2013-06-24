@@ -21,24 +21,22 @@ update-ca-certificates \- update system CA certificates
 .B update-ca-certificates
 .RI [ options ]
 .SH DESCRIPTION
-\fBupdate-ca-certificates\fP updates the directory
-/etc/ssl/certs to hold SSL certificates and generates /etc/ssl/ca-bundle.pem,
-a concatenated single-file list of certificates.
+\fBupdate-ca-certificates\fP is intended to keep the certificate stores of
+various components in sync with the system CA certificates.
 .PP
-It reads the file /etc/ca-certificates.conf. Each line gives a pathname of
-a CA certificate under /usr/share/ca-certificates that should be trusted.
-Lines that begin with "#" are comment lines and thus ignored.
-Lines that begin with "!" are deselected, causing the deactivation
-of the CA certificate in question. All certificates are implicitly
-trusted if no trusted certificates are listed.
+The canonical source of CA certificates is what p11-kit knows about.
+By default p11-kit looks into /usr/share/pki/anchors
+resp /etc/pki/trust/anchors but there could be other plugins that
+serve as source for certificates as well.
 .PP
-Furthermore all certificates found below /usr/local/share/ca-certificates
-are also included as implicitly trusted.
+To blacklist certificates symlinks to the respective certificates
+can be placed in /etc/pki/trust/blacklist
 .PP
-After populating /etc/ssl/certs \fBupdate-ca-certificates\fP invokes
+\fBupdate-ca-certificates\fP invokes
 custom hooks in /usr/lib/ca-certificates/update.d/*.run and
-/etc/ca-certificates/update.d/*.run. The command line options used
-for invoking update-ca-certificates are passed to the hooks as well.
+/etc/ca-certificates/update.d/*.run to generate various certificate storages as
+used by differnt programs. The command line options used for invoking
+update-ca-certificates are passed to the hooks as well.
 .SH OPTIONS
 A summary of options is included below.
 .TP
@@ -49,25 +47,19 @@ Show summary of options.
 Be verbose. Output \fBc_rehash\fP.
 .TP
 .B \-f, \-\-fresh
-Fresh updates.  Removes symlinks in /etc/ssl/certs directory and
-re-creates them from scratch.
+Fresh updates. Don't update stores incrementally but create from scratch.
 .SH FILES
 .TP
-.I /etc/ca-certificates.conf
-A configuration file.
+.I /usr/share/pki/trust/anchors
+Directory of CA certificate trust anchors.
 .TP
-.I /etc/ssl/ca-bundle.pem
-A single-file version of all CA certificates. Use of this file is
-deprecated and should only be used as last resort by applications
-that cannot parse the /etc/ssl/certs directory.
+.I /usr/share/pki/trust/blacklist
+Directory of blacklisted CA certificates
 .TP
-.I /usr/share/ca-certificates
-Directory of CA certificates.
-.I /usr/local/share/ca-certificates
-Directory of local CA certificates.
+.I /etc/pki/trust/anchors
+Directory of CA certificate trust anchors for use by the admin
+.TP
+.I /etc/pki/trust/anchors
+Directory of blacklisted CA certificates for use by the admin
 .SH SEE ALSO
 .BR c_rehash (1),
-.SH AUTHOR
-This manual page was written by Fumitoshi UKAI <ukai@debian.or.jp>,
-for the Debian project and modified by Ludwig Nussel
-<ludwig.nussel@suse.de>.
