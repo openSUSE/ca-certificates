@@ -33,6 +33,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Url:            https://github.com/openSUSE/ca-certificates
 #
 Requires:       openssl
+Requires:       p11-kit
 Requires:       p11-kit-tools
 # needed for %post
 Requires(post): coreutils openssl p11-kit-tools
