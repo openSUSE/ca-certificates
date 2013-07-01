@@ -3,8 +3,8 @@
 
 set -e
 
-cafile="/var/lib/pki/ca-bundle.pem"
-cadir="/var/lib/pki/pem"
+cafile="/var/lib/ca-certificates/ca-bundle.pem"
+cadir="/var/lib/ca-certificates/pem"
 
 for i in "$@"; do
 	if [ "$i" = "-f" ]; then

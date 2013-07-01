@@ -5,8 +5,9 @@ export LANG=en_US
 
 set -e
 
-cafile="/var/lib/pki/java-cacerts"
-cafile_gcj="/var/lib/pki/gcj-cacerts"
+cafile="/var/lib/ca-certificates/java-cacerts"
+cafile_gcj="/var/lib/ca-certificates/gcj-cacerts"
+cadir="/var/lib/ca-certificates/pem"
 
 
 for i in "$@"; do
