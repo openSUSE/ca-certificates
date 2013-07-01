@@ -2,7 +2,7 @@
 
 set -e
 
-cadir="/var/lib/ca-certificates/openssl"
+cadir="/var/lib/pki/openssl"
 
 
 for i in "$@"; do

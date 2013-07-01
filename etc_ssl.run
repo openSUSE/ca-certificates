@@ -28,7 +28,7 @@ use File::Basename;
 use Getopt::Long;
 
 my $etccertsdir = "/etc/ssl/certs";
-my $pemdir = "/var/lib/ca-certificates/pem";
+my $pemdir = "/var/lib/pki/pem";
 my $foundignored;
 
 my (%added, %removed);
