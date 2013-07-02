@@ -16,6 +16,12 @@
 #
 
 
+# the ca bundle file was meant as compat option for e.g.
+# proprietary packages. Now that I see it abused in free software
+# packages that can be trivially patched to do the right thing I'm
+# disabling this for now again.
+%bcond_with cabundle
+
 BuildRequires:  openssl
 BuildRequires:  p11-kit-devel
 
@@ -23,7 +29,7 @@ Name:           ca-certificates
 %define ssletcdir %{_sysconfdir}/ssl
 %define cabundle  /var/lib/ca-certificates/ca-bundle.pem
 %define sslcerts  %{ssletcdir}/certs
-Version:        1_201306200949
+Version:        1_201307011044
 Release:        0
 Summary:        Utilities for system wide CA certificate installation
 License:        GPL-2.0+
@@ -57,6 +63,9 @@ Utilities for system wide CA certificate installation
 %build
 
 %install
+%if %{without cabundle}
+rm -f certbundle.run
+%endif
 %make_install
 install -d m 755 %{buildroot}%{trustdir_cfg}/{anchors,blacklist}
 install -d m 755 %{buildroot}%{trustdir_static}/{anchors,blacklist}
@@ -65,9 +74,11 @@ install -d m 755 %{buildroot}/etc/ca-certificates/update.d
 install -d m 755 %{buildroot}%{_prefix}/lib/ca-certificates/update.d
 install -d m 755 %{buildroot}/var/lib/ca-certificates/pem
 install -d m 755 %{buildroot}/var/lib/ca-certificates/openssl
+%if %{with cabundle}
 install -D -m 644 /dev/null %{buildroot}/%{cabundle}
-install -D -m 644 /dev/null %{buildroot}/var/lib/ca-certificates/java-cacerts
 ln -s %{cabundle} %{buildroot}%{ssletcdir}/ca-bundle.pem
+%endif
+install -D -m 644 /dev/null %{buildroot}/var/lib/ca-certificates/java-cacerts
 
 %post
 if [ -s /etc/ca-certificates.conf ]; then
@@ -104,8 +115,6 @@ rm -rf %{buildroot}
 %dir %{trustdir_static}/anchors
 %dir %{trustdir_static}/blacklist
 %dir /etc/ssl/certs
-%{ssletcdir}/ca-bundle.pem
-%ghost %{cabundle}
 %ghost /var/lib/ca-certificates/java-cacerts
 %dir /etc/ca-certificates
 %dir /etc/ca-certificates/update.d
@@ -117,8 +126,13 @@ rm -rf %{buildroot}
 %{_sbindir}/update-ca-certificates
 %{_mandir}/man8/update-ca-certificates.8*
 %{_prefix}/lib/ca-certificates/update.d/java.run
-%{_prefix}/lib/ca-certificates/update.d/certbundle.run
 %{_prefix}/lib/ca-certificates/update.d/etc_ssl.run
 %{_prefix}/lib/ca-certificates/update.d/openssl.run
+#
+%if %{with cabundle}
+%{ssletcdir}/ca-bundle.pem
+%ghost %{cabundle}
+%{_prefix}/lib/ca-certificates/update.d/certbundle.run
+%endif
 
 %changelog
