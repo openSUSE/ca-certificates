@@ -25,6 +25,7 @@
 use strict;
 
 use File::Basename;
+use File::Glob ':glob';
 use Getopt::Long;
 
 my $etccertsdir = "/etc/ssl/certs";
@@ -86,12 +87,12 @@ GetOptions(
 
 system("trust", "extract", "--purpose=server-auth", "--filter=ca-anchors", "--format=pem-directory", "-f", $pemdir) == 0 or die;
 
-for my $f (<"$pemdir/*.pem">) {
+for my $f (glob("$pemdir/*.pem")) {
 	addcert($f);
 }
 
 # clean dangling symlinks
-for my $f (<"$etccertsdir/*.pem">) {
+for my $f (glob("$etccertsdir/*.pem")) {
 	unless (-l $f) {
 		print STDERR "$f is in the wrong location *)\n";
 		$foundignored = 1;

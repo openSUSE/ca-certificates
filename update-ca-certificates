@@ -26,6 +26,7 @@
 use strict;
 
 use File::Basename;
+use File::Glob ':glob';
 use Getopt::Long;
 
 my $hooksdir1 = '/etc/ca-certificates/update.d';
