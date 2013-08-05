@@ -93,7 +93,7 @@ for my $f (<"$pemdir/*.pem">) {
 # clean dangling symlinks
 for my $f (<"$etccertsdir/*.pem">) {
 	unless (-l $f) {
-		print STDERR "$f is wrong here *)\n";
+		print STDERR "$f is in the wrong location *)\n";
 		$foundignored = 1;
 		next;
 	}
@@ -101,11 +101,12 @@ for my $f (<"$etccertsdir/*.pem">) {
 		my $d = readlink($f);
 		unless ($d && startswith($d, $pemdir)) {
 			# don't warn about the symlinks we had in the distro before
-			unless (startswith($d, "/usr/share/ca-certificates/")) {
-				print STDERR "wrong symlink $f removed *)\n";
+			if (startswith($d, "/usr/share/ca-certificates/")) {
+				unlink $f;
+			} else {
+				print STDERR "$f is in the wrong location *)\n";
 				$foundignored = 1;
 			}
-			unlink $f
 		}
 	} else {
 		$removed{$f} = 1;
