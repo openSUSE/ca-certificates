@@ -31,7 +31,7 @@ cat > "$cafile.new" <<EOF
 # - gnutls: gnutls_x509_trust_list_add_system_trust()
 #
 EOF
-p11-kit extract --format=pem-bundle --purpose=server-auth --filter=ca-anchors $cafile.tmp
+trust extract --format=pem-bundle --purpose=server-auth --filter=ca-anchors $cafile.tmp
 cat $cafile.tmp >> $cafile.new
 rm -f $cafile.tmp
 mv "$cafile.new" "$cafile"

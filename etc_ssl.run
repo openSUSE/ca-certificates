@@ -84,7 +84,7 @@ GetOptions(
 	"help|h",
     ) or die "$!\n";
 
-system("p11-kit", "extract", "--purpose=server-auth", "--filter=ca-anchors", "--format=pem-directory", "-f", $pemdir) == 0 or die;
+system("trust", "extract", "--purpose=server-auth", "--filter=ca-anchors", "--format=pem-directory", "-f", $pemdir) == 0 or die;
 
 for my $f (<"$pemdir/*.pem">) {
 	addcert($f);
