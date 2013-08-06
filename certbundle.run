@@ -28,7 +28,7 @@ cat > "$cafile.new" <<EOF
 # functions that know the operating system defaults instead:
 #
 # - openssl: SSL_CTX_set_default_verify_paths()
-# - gnutls: gnutls_x509_trust_list_add_system_trust()
+# - gnutls: gnutls_certificate_set_x509_system_trust(cred)
 #
 EOF
 trust extract --format=pem-bundle --purpose=server-auth --filter=ca-anchors $cafile.tmp
