@@ -17,10 +17,10 @@
 
 
 # the ca bundle file was meant as compat option for e.g.
-# proprietary packages. Now that I see it abused in free software
-# packages that can be trivially patched to do the right thing I'm
-# disabling this for now again.
-%bcond_with cabundle
+# proprietary packages. It's not meant to be used at all.
+# unfortunately glib-networking has such a complicated abstraction
+# on top of gnutls that we have to live with the bundle for now
+%bcond_without cabundle
 
 BuildRequires:  openssl
 BuildRequires:  p11-kit-devel
@@ -29,7 +29,7 @@ Name:           ca-certificates
 %define ssletcdir %{_sysconfdir}/ssl
 %define cabundle  /var/lib/ca-certificates/ca-bundle.pem
 %define sslcerts  %{ssletcdir}/certs
-Version:        1_201308051322
+Version:        1_201308271454
 Release:        0
 Summary:        Utilities for system wide CA certificate installation
 License:        GPL-2.0+
@@ -40,7 +40,7 @@ Url:            https://github.com/openSUSE/ca-certificates
 #
 Requires:       openssl
 Requires:       p11-kit
-Requires:       p11-kit-tools
+Requires:       p11-kit-tools >= 0.19.3
 # needed for %post
 Requires(post): coreutils openssl p11-kit-tools
 Recommends:     ca-certificates-mozilla
