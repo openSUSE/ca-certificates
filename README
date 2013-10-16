@@ -7,9 +7,9 @@ update-ca-certificates is intended to keep the certificate stores of
 various components in sync with the system CA certificates.
 
 The canonical source of CA certificates is what p11-kit knows about.
-By default p11-kit looks into /usr/share/pki/anchors
-resp /etc/pki/trust/anchors but there could be other plugins that
-serve as source for certificates as well.
+By default p11-kit looks into /usr/share/pki/trust/ resp
+/etc/pki/trust/ but there could be other plugins that serve as
+source for certificates as well.
 
 Supported Certificate Stores
 ============================
@@ -35,8 +35,10 @@ Differences to previous versions on openSUSE
 ============================================
 
 - Packages are expected to install their CA certificates in
-  /usr/share/pki/anchors/ (no extra subdir) intead of
-  /usr/share/ca-certificates/<vendor> now.
+  /usr/share/pki/trust/anchors or /usr/share/pki/trust (no extra subdir) intead
+  of /usr/share/ca-certificates/<vendor> now. The anchors subdirectory is for
+  regular pem files, the directory one above for pem files in
+  openssl's 'trusted' format.
 
 - /etc/ca-certificates.conf is no longer supported. Just symlink the
   certificates you don't want to /etc/pki/trust/blacklist.
