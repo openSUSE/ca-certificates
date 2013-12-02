@@ -127,5 +127,5 @@ if (%added || %removed || $options{fresh}) {
 if ($foundignored)
 {
 	print STDERR "\n* = CA Certificates in /etc/ssl/certs are only seen by some legacy applications.
-To install CA-Certificates globally move them to /etc/pki/trust/ancors instead!\n";
+To install CA-Certificates globally move them to /etc/pki/trust/anchors instead!\n";
 }
