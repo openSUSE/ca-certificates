@@ -29,7 +29,7 @@ Name:           ca-certificates
 %define ssletcdir %{_sysconfdir}/ssl
 %define cabundle  /var/lib/ca-certificates/ca-bundle.pem
 %define sslcerts  %{ssletcdir}/certs
-Version:        1_201310161709
+Version:        1_201312061005
 Release:        0
 Summary:        Utilities for system wide CA certificate installation
 License:        GPL-2.0+
@@ -69,16 +69,23 @@ rm -f certbundle.run
 %make_install
 install -d m 755 %{buildroot}%{trustdir_cfg}/{anchors,blacklist}
 install -d m 755 %{buildroot}%{trustdir_static}/{anchors,blacklist}
-install -d m 755 %{buildroot}/etc/ssl/certs
+install -d m 755 %{buildroot}%{ssletcdir}
 install -d m 755 %{buildroot}/etc/ca-certificates/update.d
 install -d m 755 %{buildroot}%{_prefix}/lib/ca-certificates/update.d
 install -d m 755 %{buildroot}/var/lib/ca-certificates/pem
 install -d m 755 %{buildroot}/var/lib/ca-certificates/openssl
+ln -s /var/lib/ca-certificates/pem %{buildroot}%{sslcerts}
 %if %{with cabundle}
 install -D -m 644 /dev/null %{buildroot}/%{cabundle}
 ln -s %{cabundle} %{buildroot}%{ssletcdir}/ca-bundle.pem
 %endif
 install -D -m 644 /dev/null %{buildroot}/var/lib/ca-certificates/java-cacerts
+
+%pre
+# migrate /etc/ssl/certs to a symlink
+if [ "$1" -ne 0 -a -d %{sslcerts} -a ! -L %{sslcerts} ]; then
+	mv -T --backup=numbered %{sslcerts} %{sslcerts}.rpmsave && ln -s /var/lib/ca-certificates/pem %{sslcerts}
+fi
 
 %post
 if [ -s /etc/ca-certificates.conf ]; then
@@ -114,7 +121,7 @@ rm -rf %{buildroot}
 %dir %{trustdir_static}
 %dir %{trustdir_static}/anchors
 %dir %{trustdir_static}/blacklist
-%dir /etc/ssl/certs
+%sslcerts
 %ghost /var/lib/ca-certificates/java-cacerts
 %dir /etc/ca-certificates
 %dir /etc/ca-certificates/update.d
