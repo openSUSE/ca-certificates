@@ -35,7 +35,7 @@ Differences to previous versions on openSUSE
 ============================================
 
 - Packages are expected to install their CA certificates in
-  /usr/share/pki/trust/anchors or /usr/share/pki/trust (no extra subdir) intead
+  /usr/share/pki/trust/anchors or /usr/share/pki/trust (no extra subdir) instead
   of /usr/share/ca-certificates/<vendor> now. The anchors subdirectory is for
   regular pem files, the directory one above for pem files in
   openssl's 'trusted' format.
