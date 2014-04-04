@@ -1,7 +1,7 @@
 #
 # spec file for package ca-certificates
 #
-# Copyright (c) 2013 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2014 SUSE LINUX Products GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -72,8 +72,8 @@ install -d m 755 %{buildroot}%{trustdir_static}/{anchors,blacklist}
 install -d m 755 %{buildroot}%{ssletcdir}
 install -d m 755 %{buildroot}/etc/ca-certificates/update.d
 install -d m 755 %{buildroot}%{_prefix}/lib/ca-certificates/update.d
-install -d m 755 %{buildroot}/var/lib/ca-certificates/pem
-install -d m 755 %{buildroot}/var/lib/ca-certificates/openssl
+install -d m 555 %{buildroot}/var/lib/ca-certificates/pem
+install -d m 555 %{buildroot}/var/lib/ca-certificates/openssl
 ln -s /var/lib/ca-certificates/pem %{buildroot}%{sslcerts}
 %if %{with cabundle}
 install -D -m 644 /dev/null %{buildroot}/%{cabundle}
