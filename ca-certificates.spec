@@ -29,7 +29,7 @@ Name:           ca-certificates
 %define ssletcdir %{_sysconfdir}/ssl
 %define cabundle  /var/lib/ca-certificates/ca-bundle.pem
 %define sslcerts  %{ssletcdir}/certs
-Version:        1_201312061005
+Version:        1_201403302107
 Release:        0
 Summary:        Utilities for system wide CA certificate installation
 License:        GPL-2.0+
