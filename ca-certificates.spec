@@ -41,7 +41,7 @@ Url:            https://github.com/openSUSE/ca-certificates
 Requires:       openssl
 Requires:       p11-kit
 Requires:       p11-kit-tools >= 0.19.3
-# needed for %post
+# needed for post
 Requires(post): coreutils openssl p11-kit-tools
 Recommends:     ca-certificates-mozilla
 # we need to obsolete openssl-certs to make sure it's files are
@@ -85,6 +85,10 @@ install -D -m 644 /dev/null %{buildroot}/var/lib/ca-certificates/java-cacerts
 # migrate /etc/ssl/certs to a symlink
 if [ "$1" -ne 0 -a -d %{sslcerts} -a ! -L %{sslcerts} ]; then
 	mv -T --backup=numbered %{sslcerts} %{sslcerts}.rpmsave && ln -s /var/lib/ca-certificates/pem %{sslcerts}
+	# copy custom pem files to new location (bnc#875647)
+	mkdir -p /etc/pki/trust/anchors
+	find %{sslcerts}.rpmsave -maxdepth 1 -name '*.pem' -type f -print0 | \
+		xargs -0 --no-run-if-empty -n1 -I FILE cp -v -n FILE /etc/pki/trust/anchors/
 fi
 
 %post
