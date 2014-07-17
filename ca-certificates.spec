@@ -81,6 +81,13 @@ ln -s %{cabundle} %{buildroot}%{ssletcdir}/ca-bundle.pem
 %endif
 install -D -m 644 /dev/null %{buildroot}/var/lib/ca-certificates/java-cacerts
 
+# should be done in git.
+mv %{buildroot}/%{_prefix}/lib/ca-certificates/update.d/{,50}java.run
+mv %{buildroot}/%{_prefix}/lib/ca-certificates/update.d/{,70}openssl.run
+mv %{buildroot}/%{_prefix}/lib/ca-certificates/update.d/{,80}etc_ssl.run
+# certbundle.run must be run after etc_ssl.run as it uses a timestamp from it
+mv %{buildroot}/%{_prefix}/lib/ca-certificates/update.d/{,99}certbundle.run
+
 %pre
 # migrate /etc/ssl/certs to a symlink
 if [ "$1" -ne 0 -a -d %{sslcerts} -a ! -L %{sslcerts} ]; then
@@ -141,14 +148,14 @@ rm -rf %{buildroot}
 %dir /var/lib/ca-certificates/openssl
 %{_sbindir}/update-ca-certificates
 %{_mandir}/man8/update-ca-certificates.8*
-%{_prefix}/lib/ca-certificates/update.d/java.run
-%{_prefix}/lib/ca-certificates/update.d/etc_ssl.run
-%{_prefix}/lib/ca-certificates/update.d/openssl.run
+%{_prefix}/lib/ca-certificates/update.d/*java.run
+%{_prefix}/lib/ca-certificates/update.d/*etc_ssl.run
+%{_prefix}/lib/ca-certificates/update.d/*openssl.run
 #
 %if %{with cabundle}
 %{ssletcdir}/ca-bundle.pem
 %ghost %{cabundle}
-%{_prefix}/lib/ca-certificates/update.d/certbundle.run
+%{_prefix}/lib/ca-certificates/update.d/*certbundle.run
 %endif
 
 %changelog
