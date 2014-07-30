@@ -47,7 +47,7 @@ Recommends:     ca-certificates-mozilla
 # we need to obsolete openssl-certs to make sure it's files are
 # gone when a package providing actual certificates gets
 # installed (bnc#594434).
-Obsoletes:      openssl-certs < 0.9.9
+Obsoletes:      openssl-certs
 # no need for a separate Java package anymore. The bundle is
 # created by C code.
 Obsoletes:      java-ca-certificates = 1
