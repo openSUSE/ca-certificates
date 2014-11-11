@@ -137,7 +137,7 @@ update-ca-certificates -f || true
 
 %postun
 if [ "$1" -eq 0 ]; then
-	rm -rf /var/lib/ca-certificates/{pem,openssl}
+	rm -rf /var/lib/ca-certificates/pem /var/lib/ca-certificates/openssl
 fi
 
 %clean
