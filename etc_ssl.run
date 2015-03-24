@@ -84,8 +84,7 @@ GetOptions(
 	"help|h",
     ) or die "$!\n";
 
-$ENV{'P11_KIT_PEMDIR_HASH'} = 1;
-system("trust", "extract", "--purpose=server-auth", "--filter=ca-anchors", "--format=pem-directory", "-f", $pemdir) == 0 or die;
+system("trust", "extract", "--purpose=server-auth", "--filter=ca-anchors", "--format=pem-directory-hash", "-f", $pemdir) == 0 or die;
 
 # we are done if /etc/ssl/certs is a link pointing to /var/lib/ca-certificates/pem
 exit 0 if (-l $etccertsdir && readlink($etccertsdir) eq $pemdir);
