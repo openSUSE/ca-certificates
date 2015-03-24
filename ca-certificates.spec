@@ -1,7 +1,7 @@
 #
 # spec file for package ca-certificates
 #
-# Copyright (c) 2014 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2015 SUSE LINUX GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -29,7 +29,7 @@ Name:           ca-certificates
 %define ssletcdir %{_sysconfdir}/ssl
 %define cabundle  /var/lib/ca-certificates/ca-bundle.pem
 %define sslcerts  %{ssletcdir}/certs
-Version:        1_201403302107
+Version:        1.1+git20150324.e3ee392
 Release:        0
 Summary:        Utilities for system wide CA certificate installation
 License:        GPL-2.0+
