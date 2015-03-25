@@ -40,7 +40,7 @@ Url:            https://github.com/openSUSE/ca-certificates
 #
 Requires:       openssl
 Requires:       p11-kit
-Requires:       p11-kit-tools >= 0.19.3
+Requires:       p11-kit-tools >= 0.23.1
 # needed for post
 Requires(post): coreutils openssl p11-kit-tools
 Recommends:     ca-certificates-mozilla
