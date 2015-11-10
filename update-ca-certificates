@@ -51,6 +51,9 @@ if ($options{help})
 	exit 0;
 }
 
+# set sane umask
+umask 0222;
+
 my @args;
 push @args, '-f' if $options{fresh};
 push @args, '-v' if $options{verbose};
