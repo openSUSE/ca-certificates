@@ -1,0 +1,11 @@
+[Unit]
+Description=Update system wide CA certificates
+Wants=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/update-ca-certificates
+
+[Install]
+WantedBy=default.target
+
