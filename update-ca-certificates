@@ -54,6 +54,11 @@ if ($options{help})
 # set sane umask
 umask 0222;
 
+if (($ENV{TRANSACTIONAL_UPDATE}//'') =~ /^(?:true|yes|1)/i) {
+	warn "transactional update in progress, not running any scripts" if $options{verbose};
+	exit 0;
+}
+
 my @args;
 push @args, '-f' if $options{fresh};
 push @args, '-v' if $options{verbose};
