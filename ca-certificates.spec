@@ -29,14 +29,12 @@ Name:           ca-certificates
 %define ssletcdir %{_sysconfdir}/ssl
 %define cabundle  /var/lib/ca-certificates/ca-bundle.pem
 %define sslcerts  %{ssletcdir}/certs
-Version:        2+git20151110.c15593c
+Version:        2+git20170807.10b2785
 Release:        0
 Summary:        Utilities for system wide CA certificate installation
 License:        GPL-2.0+
 Group:          Productivity/Networking/Security
 Source0:        ca-certificates-%{version}.tar.xz
-Source1:        ca-certificates.path
-Source2:        ca-certificates.service
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Url:            https://github.com/openSUSE/ca-certificates
 #
@@ -58,7 +56,9 @@ BuildArch:      noarch
 %{?systemd_requires}
 
 %description
-Utilities for system wide CA certificate installation
+Update-ca-certificates is intended to keep the certificate stores of
+SSL libraries like OpenSSL or GnuTLS in sync with the system's CA
+certificate store that is managed by p11-kit.
 
 %prep
 %setup -q
@@ -70,6 +70,7 @@ Utilities for system wide CA certificate installation
 rm -f certbundle.run
 %endif
 %make_install
+ln -s service %{buildroot}%{_sbindir}/rcca-certificates
 install -d -m 755 %{buildroot}%{trustdir_cfg}/{anchors,blacklist}
 install -d -m 755 %{buildroot}%{trustdir_static}/{anchors,blacklist}
 install -d -m 755 %{buildroot}%{ssletcdir}
@@ -84,8 +85,6 @@ install -D -m 644 /dev/null %{buildroot}/%{cabundle}
 ln -s %{cabundle} %{buildroot}%{ssletcdir}/ca-bundle.pem
 %endif
 install -D -m 644 /dev/null %{buildroot}/var/lib/ca-certificates/java-cacerts
-install -m 644 %{SOURCE1}  %{buildroot}/%{_prefix}/lib/systemd/system/
-install -m 644 %{SOURCE2}  %{buildroot}/%{_prefix}/lib/systemd/system/
 
 # should be done in git.
 mv %{buildroot}/%{_prefix}/lib/ca-certificates/update.d/{,50}java.run
@@ -140,7 +139,7 @@ fi
 # force rebuilding all certificate stores.
 # This also makes sure we update the hash links in /etc/ssl/certs
 # as openssl changed the hash format between 0.9.8 and 1.0
-#update-ca-certificates -f || true
+update-ca-certificates -f || true
 %service_add_post ca-certificates.path ca-certificates.service
 
 %preun
@@ -176,6 +175,7 @@ rm -rf %{buildroot}
 %dir /var/lib/ca-certificates
 %dir /var/lib/ca-certificates/pem
 %dir /var/lib/ca-certificates/openssl
+%{_sbindir}/rcca-certificates
 %{_sbindir}/update-ca-certificates
 %{_mandir}/man8/update-ca-certificates.8*
 %{_prefix}/lib/ca-certificates/update.d/*java.run
