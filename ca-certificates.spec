@@ -53,6 +53,7 @@ Obsoletes:      openssl-certs
 Obsoletes:      java-ca-certificates = 1
 Provides:       java-ca-certificates = %version-%release
 BuildArch:      noarch
+%{?systemd_requires}
 
 %description
 Update-ca-certificates is intended to keep the certificate stores of
