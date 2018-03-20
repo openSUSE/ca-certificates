@@ -1,7 +1,7 @@
 #
 # spec file for package ca-certificates
 #
-# Copyright (c) 2017 SUSE LINUX GmbH, Nuernberg, Germany.
+# Copyright (c) 2018 SUSE LINUX GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -32,7 +32,7 @@ Name:           ca-certificates
 Version:        2+git20170807.10b2785
 Release:        0
 Summary:        Utilities for system wide CA certificate installation
-License:        GPL-2.0+
+License:        GPL-2.0-or-later
 Group:          Productivity/Networking/Security
 Source0:        ca-certificates-%{version}.tar.xz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -155,7 +155,8 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-, root, root)
-%doc COPYING README
+%license COPYING
+%doc README
 %dir %{pkidir_cfg}
 %dir %{trustdir_cfg}
 %dir %{trustdir_cfg}/anchors
