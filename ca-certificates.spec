@@ -12,7 +12,7 @@
 # license that conforms to the Open Source Definition (Version 1.9)
 # published by the Open Source Initiative.
 
-# Please submit bugfixes or comments via http://bugs.opensuse.org/
+# Please submit bugfixes or comments via https://bugs.opensuse.org/
 #
 
 
@@ -38,9 +38,9 @@ Source0:        ca-certificates-%{version}.tar.xz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Url:            https://github.com/openSUSE/ca-certificates
 #
-Requires:       openssl
 Requires:       p11-kit
 Requires:       p11-kit-tools >= 0.23.1
+Requires:       openssl(cli)
 # needed for post
 Requires(post): coreutils openssl p11-kit-tools
 Recommends:     ca-certificates-mozilla
