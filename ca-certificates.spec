@@ -1,7 +1,7 @@
 #
 # spec file for package ca-certificates
 #
-# Copyright (c) 2018 SUSE LINUX GmbH, Nuernberg, Germany.
+# Copyright (c) 2020 SUSE LINUX GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -22,14 +22,13 @@
 # on top of gnutls that we have to live with the bundle for now
 %bcond_without cabundle
 
-BuildRequires:  openssl
 BuildRequires:  p11-kit-devel
 
 Name:           ca-certificates
 %define ssletcdir %{_sysconfdir}/ssl
 %define cabundle  /var/lib/ca-certificates/ca-bundle.pem
 %define sslcerts  %{ssletcdir}/certs
-Version:        2+git20170807.10b2785
+Version:        2+git20200129.d1a437d
 Release:        0
 Summary:        Utilities for system wide CA certificate installation
 License:        GPL-2.0-or-later
@@ -42,7 +41,7 @@ Requires:       p11-kit
 Requires:       p11-kit-tools >= 0.23.1
 Requires:       openssl(cli)
 # needed for post
-Requires(post): coreutils openssl p11-kit-tools
+Requires(post): coreutils p11-kit-tools
 Recommends:     ca-certificates-mozilla
 # we need to obsolete openssl-certs to make sure it's files are
 # gone when a package providing actual certificates gets
@@ -165,6 +164,7 @@ rm -rf %{buildroot}
 %dir %{trustdir_static}
 %dir %{trustdir_static}/anchors
 %dir %{trustdir_static}/blacklist
+%dir %ssletcdir
 %sslcerts
 %ghost /var/lib/ca-certificates/java-cacerts
 %dir /etc/ca-certificates
