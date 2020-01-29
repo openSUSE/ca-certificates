@@ -1,8 +1,9 @@
-#!/usr/bin/perl -w
+#!/bin/bash
 #
 # update-ca-certificates
 #
 # Copyright (c) 2010,2013 SUSE Linux Products GmbH
+# Copyright (c) 2020 SUSE LLC
 # Author: Ludwig Nussel
 #
 # Inspired by Debian's update-ca-certificates
@@ -23,46 +24,46 @@
 # USA.
 #
 
-use strict;
+hooksdir1='/etc/ca-certificates/update.d'
+hooksdir2='/usr/lib/ca-certificates/update.d'
+verbose=
+fresh=
 
-use File::Basename;
-use Getopt::Long;
-
-my $hooksdir1 = '/etc/ca-certificates/update.d';
-my $hooksdir2 = '/usr/lib/ca-certificates/update.d';
-
-my %options;
-
-Getopt::Long::Configure("no_ignore_case");
-GetOptions(
-	\%options,
-	"verbose|v",
-	"fresh|f",
-	"help|h",
-    ) or die "$!\n";
-
-if ($options{help})
+help_and_exit()
 {
-	print "USAGE: $0 [OPTIONS]\n";
-	print "OPTIIONS:\n";
-	print "  --verbose, -v     verbose output\n";
-	print "  --fresh, -f       start from scratch\n";
-	print "  --help, -h        this screen\n";
-	exit 0;
+    cat <<-EOF
+	USAGE: $0 [OPTIONS]
+	OPTIIONS:
+	  --verbose, -v     verbose output
+	  --fresh, -f       start from scratch
+	  --help, -h        this screen
+EOF
+    exit 0
 }
+
+case "$1" in
+    -v|--verbose) verbose='-v'; shift ;;
+    -f|--fresh) fresh='-f'; shift ;;
+    -h|--help) help_and_exit ;;
+    -*) echo "invalid option: $1" >&2; exit 1 ;;
+esac
 
 # set sane umask
 umask 0222;
 
-if (($ENV{TRANSACTIONAL_UPDATE}//'') =~ /^(?:true|yes|1)/i) {
-	warn "transactional update in progress, not running any scripts" if $options{verbose};
-	exit 0;
-}
+case "${TRANSACTIONAL_UPDATE,,*}" in
+    true|yes|1)
+        [ -z "$verbose" ] || echo "transactional update in progress, not running any scripts" >&2
+        exit 0
+        ;;
+esac
 
-my @args;
-push @args, '-f' if $options{fresh};
-push @args, '-v' if $options{verbose};
-for my $f (sort(glob("$hooksdir2/*.run"), glob("$hooksdir1/*.run"))) {
-	print "running $f ...\n" if $options{verbose};
-	system($f, @args);
-}
+while read s f; do
+    if [ -L "$f" -a "`readlink "$f"`" = "/dev/null" ]; then
+	[ -z "$verbose" ] || echo "skipping $f"
+	continue
+    else
+	[ -z "$verbose" ] || echo "running $f .."
+    fi
+    "$f" $fresh $verbose
+done < <(find "$hooksdir1" "$hooksdir2" -maxdepth 1 \( -type f -o -type l \) -name '*.run' -printf '%f\t%p\n'|sort -k 1,1 -u)

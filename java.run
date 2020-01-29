@@ -1,8 +1,5 @@
 #!/bin/bash
 
-unset ${!LC_*} ${!RC_LC_*} LANGUAGE RC_LANG
-export LANG=en_US
-
 set -e
 
 cafile="/var/lib/ca-certificates/java-cacerts"

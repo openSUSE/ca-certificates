@@ -1,7 +1,8 @@
-#!/usr/bin/perl -w
-# vim:syntax=perl
+#!/bin/bash -e
+# vim:syntax=sh
 #
 # Copyright (c) 2010,2013 SUSE Linux Products GmbH
+# Copyright (c) 2020 SUSE LLC
 # Author: Ludwig Nussel
 #
 # update /etc/ssl/certs for compatibility with legacy applications
@@ -22,114 +23,35 @@
 # USA.
 #
 
-use strict;
+etccertsdir="/etc/ssl/certs"
+pemdir="/var/lib/ca-certificates/pem"
 
-use File::Basename;
-use Getopt::Long;
-
-my $etccertsdir = "/etc/ssl/certs";
-my $pemdir = "/var/lib/ca-certificates/pem";
-my $foundignored;
-
-my (%added, %removed);
-
-my %options;
-
-sub startswith($$)
+help_and_exit()
 {
-	return $_[1] eq substr($_[0], 0, length($_[1]));
+    cat <<-EOF
+	USAGE: $0 [OPTIONS]
+	OPTIIONS:
+	  --verbose, -v     verbose output
+	  --fresh, -f       start from scratch
+	  --help, -h        this screen
+EOF
+    exit 0
 }
 
-sub targetfilename($)
-{
-	my $t = $etccertsdir.'/'.basename($_[0]);
-	return $t;
-}
+case "$1" in
+    -v|--verbose) verbose='-v'; shift ;;
+    -f|--fresh) fresh='-f'; shift ;;
+    -h|--help) help_and_exit ;;
+    -*) echo "invalid option: $1" >&2; exit 1 ;;
+esac
 
-sub addcert($)
-{
-	my $f = $_[0];
-	my $t = targetfilename($f);
-	if (-l $t) {
-		my $d = readlink($t);
-		return if ($d && $d eq $f);
-		print STDERR "wrong symlink $d removed *)\n";
-		$foundignored = 1;
-		unlink($t);
-	} elsif (-e $t) {
-		print STDERR "$t in the way *)\n";
-		$foundignored = 1;
-		return;
-	}
-	if (symlink($f, $t)) {
-		$added{$t} = 1;
-	} else {
-		print STDERR "symlink of $t failed: $!\n";
-	}
-}
+trust extract --purpose=server-auth --filter=ca-anchors --format=pem-directory-hash -f "$pemdir"
 
-sub removecert($)
-{
-	my $t = targetfilename($_[0]);
-	if (-l $t) {
-		$removed{$t} = 1;
-		unlink $t;
-	}
-}
-
-GetOptions(
-	\%options,
-	"verbose|v",
-	"fresh|f",
-	"help|h",
-    ) or die "$!\n";
-
-system("trust", "extract", "--purpose=server-auth", "--filter=ca-anchors", "--format=pem-directory-hash", "-f", $pemdir) == 0 or die;
-
-# we are done if /etc/ssl/certs is a link pointing to /var/lib/ca-certificates/pem
-exit 0 if (-l $etccertsdir && readlink($etccertsdir) eq $pemdir);
-warn "Warning: $etccertsdir should be a link to $pemdir!\n";
-
-for my $f (<"$pemdir/*.pem">) {
-	addcert($f);
-}
-
-# clean dangling symlinks
-for my $f (<"$etccertsdir/*.pem">) {
-	unless (-l $f) {
-		print STDERR "$f is in the wrong location *)\n";
-		$foundignored = 1;
-		next;
-	}
-	if (-e $f) {
-		my $d = readlink($f);
-		unless ($d && startswith($d, $pemdir)) {
-			# don't warn about the symlinks we had in the distro before
-			if (startswith($d, "/usr/share/ca-certificates/")) {
-				unlink $f;
-			} else {
-				print STDERR "$f is in the wrong location *)\n";
-				$foundignored = 1;
-			}
-		}
-	} else {
-		$removed{$f} = 1;
-		unlink $f
-	}
-}
-
-chdir $etccertsdir || die "$!";
-if (%added || %removed || $options{fresh}) {
-	print "Updating certificates in $etccertsdir...\n" if $options{verbose};
-	my $redir = ($options{verbose}?'':'> /dev/null');
-	system("c_rehash . $redir");
-	printf("%d added, %d removed.\n",
-		(%added?(scalar keys %added):0),
-		(%removed?(scalar keys %removed):0));
-}
-
-if ($foundignored)
-{
-	print STDERR "\n* = CA Certificates in /etc/ssl/certs are only seen by some legacy applications.
-To install CA-Certificates globally move them to /etc/pki/trust/anchors instead!\n";
-}
+# fix up /etc/ssl/certs if it's not a link pointing to /var/lib/ca-certificates/pem
+if ! [ -L "$etccertsdir" -a "`readlink $etccertsdir`" = "$pemdir" ]; then
+    echo "Warning: $etccertsdir needs to be a link to $pemdir, fixing" >&2
+    if [ -d "$etccertsdir" ]; then
+	mv -Tv --backup=numbered "$etccertsdir" "$etccertsdir.old"
+    fi
+    ln -Tsv --backup=numbered "$pemdir" "$etccertsdir"
+fi
