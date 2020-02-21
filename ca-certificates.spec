@@ -37,11 +37,13 @@ Source0:        ca-certificates-%{version}.tar.xz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Url:            https://github.com/openSUSE/ca-certificates
 #
+Requires:       coreutils
+Requires:       findutils
 Requires:       p11-kit
 Requires:       p11-kit-tools >= 0.23.1
 Requires:       openssl(cli)
 # needed for post
-Requires(post): coreutils p11-kit-tools
+Requires(post): coreutils findutils p11-kit-tools
 Recommends:     ca-certificates-mozilla
 # we need to obsolete openssl-certs to make sure it's files are
 # gone when a package providing actual certificates gets
