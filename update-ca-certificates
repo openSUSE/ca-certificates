@@ -53,10 +53,12 @@ umask 0222;
 
 case "${TRANSACTIONAL_UPDATE,,*}" in
     true|yes|1)
-        [ -z "$verbose" ] || echo "transactional update in progress, not running any scripts" >&2
-        exit 0
-        ;;
+	[ -z "$verbose" ] || echo "transactional update in progress, not running any scripts" >&2
+	> /etc/pki/trust/.updated
+	exit 0
+	;;
 esac
+rm -f /etc/pki/trust/.updated
 
 while read s f; do
     if [ -L "$f" -a "`readlink "$f"`" = "/dev/null" ]; then
