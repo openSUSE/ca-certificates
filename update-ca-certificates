@@ -33,7 +33,7 @@ help_and_exit()
 {
     cat <<-EOF
 	USAGE: $0 [OPTIONS]
-	OPTIIONS:
+	OPTIONS:
 	  --verbose, -v     verbose output
 	  --fresh, -f       start from scratch
 	  --help, -h        this screen
