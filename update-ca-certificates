@@ -41,12 +41,14 @@ EOF
     exit 0
 }
 
-case "$1" in
-    -v|--verbose) verbose='-v'; shift ;;
-    -f|--fresh) fresh='-f'; shift ;;
-    -h|--help) help_and_exit ;;
-    -*) echo "invalid option: $1" >&2; exit 1 ;;
-esac
+for arg in "$@"; do
+    case "$arg" in
+        -v|--verbose) verbose='-v' ;;
+        -f|--fresh) fresh='-f' ;;
+        -h|--help) help_and_exit ;;
+        -*) echo "invalid option: $1" >&2; exit 1 ;;
+    esac
+done
 
 # set sane umask
 umask 0222;
