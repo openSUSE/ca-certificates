@@ -60,6 +60,19 @@ case "${TRANSACTIONAL_UPDATE,,*}" in
 esac
 rm -f /etc/pki/trust/.updated
 
+function find_hooks {
+    for hooksdir in $hooksdir1 $hooksdir2; do
+        for f in $(ls $hooksdir); do
+            if [[ $f =~ .run$ ]]; then
+                full_path="$hooksdir/$f"
+                if [ -L $full_path ] || [ -f $full_path ]; then
+                    echo $f $full_path
+                fi
+            fi
+        done
+    done
+}
+
 while read s f; do
     if [ -L "$f" -a "`readlink "$f"`" = "/dev/null" ]; then
 	[ -z "$verbose" ] || echo "skipping $f"
@@ -68,4 +81,4 @@ while read s f; do
 	[ -z "$verbose" ] || echo "running $f .."
     fi
     "$f" $fresh $verbose
-done < <(find "$hooksdir1" "$hooksdir2" -maxdepth 1 \( -type f -o -type l \) -name '*.run' -printf '%f\t%p\n'|sort -k 1,1 -u)
+done < <(find_hooks|sort -k 1,1 -u)
