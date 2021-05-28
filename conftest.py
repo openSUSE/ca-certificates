@@ -14,7 +14,7 @@ SLE_CONTAINERS = [
     "registry.suse.com/suse/sle15:15.3",
     "registry.suse.com/suse/sle15:15.2",
     "registry.suse.com/suse/sle15:15.1",
-    "registry.suse.com/suse/sles12sp5:latest"
+    "registry.suse.com/suse/sles12sp5:latest",
 ]
 
 CONTAINER_IMAGES = TUMBLEWEED_CONTAINER + LEAP_CONTAINERS + SLE_CONTAINERS
