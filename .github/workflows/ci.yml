@@ -1,0 +1,35 @@
+---
+name: CI
+
+on:
+  push:
+    branches:
+      - "master"
+  pull_request:
+
+jobs:
+  format:
+    name: Ensure code is black formatted
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout source code
+        uses: actions/checkout@v2
+      - name: set up Python
+        uses: actions/setup-python@v2
+      - name: install dependencies
+        run: pip install --user poetry && poetry install
+      - name: run tests
+        run: poetry run black --check --diff *py
+
+  tests:
+    name: Test containers
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout source code
+        uses: actions/checkout@v2
+      - name: set up Python
+        uses: actions/setup-python@v2
+      - name: install dependencies
+        run: pip install --user poetry && poetry install
+      - name: run tests
+        run: poetry run pytest -vv -n $(nproc)
