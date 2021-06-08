@@ -23,8 +23,9 @@
 # USA.
 #
 
+[ -d "$statedir" ]
 etccertsdir="/etc/ssl/certs"
-pemdir="/var/lib/ca-certificates/pem"
+pemdir="$statedir/pem"
 
 help_and_exit()
 {
@@ -45,6 +46,7 @@ case "$1" in
     -*) echo "invalid option: $1" >&2; exit 1 ;;
 esac
 
+mkdir -p "$pemdir"
 trust extract --purpose=server-auth --filter=ca-anchors --format=pem-directory-hash -f "$pemdir"
 
 # fix up /etc/ssl/certs if it's not a link pointing to /var/lib/ca-certificates/pem

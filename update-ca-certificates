@@ -24,10 +24,13 @@
 # USA.
 #
 
+statedir='/var/lib/ca-certificates'
 hooksdir1='/etc/ca-certificates/update.d'
 hooksdir2='/usr/lib/ca-certificates/update.d'
 verbose=
 fresh=
+
+export statedir
 
 help_and_exit()
 {
@@ -61,6 +64,8 @@ case "${TRANSACTIONAL_UPDATE,,*}" in
 	;;
 esac
 rm -f /etc/pki/trust/.updated
+
+mkdir -p "$statedir"
 
 function find_hooks {
     for hooksdir in $hooksdir1 $hooksdir2; do
