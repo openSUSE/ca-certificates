@@ -7,7 +7,7 @@
 # Author: Ludwig Nussel
 #
 # Inspired by Debian's update-ca-certificates
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -69,14 +69,14 @@ mkdir -p "$statedir"
 
 function find_hooks {
     for hooksdir in $hooksdir1 $hooksdir2; do
-        for f in $(ls $hooksdir); do
-            if [[ $f =~ .run$ ]]; then
-                full_path="$hooksdir/$f"
-                if [ -L $full_path ] || [ -f $full_path ]; then
-                    echo $f $full_path
-                fi
-            fi
-        done
+	for f in $(ls $hooksdir); do
+	    if [[ $f =~ .run$ ]]; then
+		full_path="$hooksdir/$f"
+		if [ -L $full_path ] || [ -f $full_path ]; then
+		    echo $f $full_path
+		fi
+	    fi
+	done
     done
 }
 

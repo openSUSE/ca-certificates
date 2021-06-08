@@ -8,15 +8,15 @@ cafile="$statedir/ca-bundle.pem"
 cadir="$statedir/pem"
 
 for i in "$@"; do
-	if [ "$i" = "-f" ]; then
-		fresh=1
-	elif [ "$i" = "-v" ]; then
-		verbose=1
-	fi
+    if [ "$i" = "-f" ]; then
+	fresh=1
+    elif [ "$i" = "-v" ]; then
+	verbose=1
+    fi
 done
 
 if [ -z "$fresh" -a "$cafile" -nt "$cadir" ]; then
-	exit 0
+    exit 0
 fi
 [ -z "$verbose" ] || echo "creating $cafile ..."
 trust extract --format=pem-bundle --purpose=server-auth --filter=ca-anchors $cafile.tmp

@@ -8,11 +8,11 @@ cafile_gcj="$statedir/gcj-cacerts"
 
 
 for i in "$@"; do
-	if [ "$i" = "-f" ]; then
-		fresh=1
-	elif [ "$i" = "-v" ]; then
-		verbose=1
-	fi
+    if [ "$i" = "-f" ]; then
+	fresh=1
+    elif [ "$i" = "-v" ]; then
+	verbose=1
+    fi
 done
 
 [ -z "$verbose" ] || echo "creating $cafile ..."
