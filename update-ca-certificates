@@ -68,13 +68,11 @@ rm -f /etc/pki/trust/.updated
 mkdir -p "$statedir"
 
 function find_hooks {
+    shopt -s nullglob
     for hooksdir in $hooksdir1 $hooksdir2; do
-	for f in $(ls $hooksdir); do
-	    if [[ $f =~ .run$ ]]; then
-		full_path="$hooksdir/$f"
-		if [ -L $full_path ] || [ -f $full_path ]; then
-		    echo $f $full_path
-		fi
+	for f in "$hooksdir"/*.run; do
+	    if [ -L "$f" ] || [ -f "$f" ]; then
+		echo "${f##*/}" "$f"
 	    fi
 	done
     done
