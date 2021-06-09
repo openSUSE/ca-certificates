@@ -7,7 +7,7 @@
 # Author: Ludwig Nussel
 #
 # Inspired by Debian's update-ca-certificates
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -24,10 +24,13 @@
 # USA.
 #
 
+statedir='/var/lib/ca-certificates'
 hooksdir1='/etc/ca-certificates/update.d'
 hooksdir2='/usr/lib/ca-certificates/update.d'
 verbose=
 fresh=
+
+export statedir
 
 help_and_exit()
 {
@@ -62,16 +65,16 @@ case "${TRANSACTIONAL_UPDATE,,*}" in
 esac
 rm -f /etc/pki/trust/.updated
 
+mkdir -p "$statedir"
+
 function find_hooks {
+    shopt -s nullglob
     for hooksdir in $hooksdir1 $hooksdir2; do
-        for f in $(ls $hooksdir); do
-            if [[ $f =~ .run$ ]]; then
-                full_path="$hooksdir/$f"
-                if [ -L $full_path ] || [ -f $full_path ]; then
-                    echo $f $full_path
-                fi
-            fi
-        done
+	for f in "$hooksdir"/*.run; do
+	    if [ -L "$f" ] || [ -f "$f" ]; then
+		echo "${f##*/}" "$f"
+	    fi
+	done
     done
 }
 

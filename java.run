@@ -2,17 +2,17 @@
 
 set -e
 
-cafile="/var/lib/ca-certificates/java-cacerts"
-cafile_gcj="/var/lib/ca-certificates/gcj-cacerts"
-cadir="/var/lib/ca-certificates/pem"
+[ -d "$statedir" ]
+cafile="$statedir/java-cacerts"
+cafile_gcj="$statedir/gcj-cacerts"
 
 
 for i in "$@"; do
-	if [ "$i" = "-f" ]; then
-		fresh=1
-	elif [ "$i" = "-v" ]; then
-		verbose=1
-	fi
+    if [ "$i" = "-f" ]; then
+	fresh=1
+    elif [ "$i" = "-v" ]; then
+	verbose=1
+    fi
 done
 
 [ -z "$verbose" ] || echo "creating $cafile ..."

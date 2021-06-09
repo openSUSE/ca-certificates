@@ -2,18 +2,20 @@
 
 set -e
 
-cadir="/var/lib/ca-certificates/openssl"
+[ -d "$statedir" ]
+cadir="$statedir/openssl"
 
 
 for i in "$@"; do
-	if [ "$i" = "-f" ]; then
-		fresh=1
-	elif [ "$i" = "-v" ]; then
-		verbose=1
-	fi
+    if [ "$i" = "-f" ]; then
+	fresh=1
+    elif [ "$i" = "-v" ]; then
+	verbose=1
+    fi
 done
 
 [ -z "$verbose" ] || echo "creating $cadir ..."
+mkdir -p "$cadir"
 trust extract --format=openssl-directory --filter=ca-anchors --overwrite $cadir
 
 # vim: syntax=sh
