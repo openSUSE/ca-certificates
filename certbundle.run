@@ -35,3 +35,7 @@ cat - $cafile.tmp > "$cafile.new" <<EOF
 EOF
 rm -f $cafile.tmp
 mv -f "$cafile.new" "$cafile"
+if ! test -e /etc/ssl/ca-bundle.pem && ! test -L /etc/ssl/ca-bundle.pem; then
+    [ -z "$verbose" ] || echo "restoring /etc/ssl/ca-bundle.pem ..."
+    ln -s ../../var/lib/ca-certificates/ca-bundle.pem /etc/ssl/ca-bundle.pem
+fi
