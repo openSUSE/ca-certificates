@@ -38,11 +38,10 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 URL:            https://github.com/openSUSE/ca-certificates
 #
 Requires:       /usr/bin/readlink
-Requires:       findutils
 Requires:       p11-kit
 Requires:       p11-kit-tools >= 0.23.1
 # needed for post
-Requires(post): p11-kit-tools findutils /usr/bin/readlink
+Requires(post): p11-kit-tools /usr/bin/readlink
 Recommends:     ca-certificates-mozilla
 # no need for a separate Java package anymore. The bundle is
 # created by C code.
