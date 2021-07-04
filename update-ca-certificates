@@ -28,6 +28,7 @@ statedir='/var/lib/ca-certificates'
 hooksdir1='/etc/ca-certificates/update.d'
 hooksdir2='/usr/lib/ca-certificates/update.d'
 verbose=
+destdir=/
 fresh=
 
 export statedir
@@ -37,9 +38,10 @@ help_and_exit()
     cat <<-EOF
 	USAGE: $0 [OPTIONS]
 	OPTIONS:
-	  --verbose, -v     verbose output
-	  --fresh, -f       start from scratch
-	  --help, -h        this screen
+	  --verbose, -v       verbose output
+	  --root <Directory>  Root directory to use (default: $destdir)
+	  --fresh, -f         start from scratch
+	  --help, -h          this screen
 EOF
     exit 0
 }
@@ -48,6 +50,14 @@ for arg in "$@"; do
     case "$arg" in
         -v|--verbose) verbose='-v' ;;
         -f|--fresh) fresh='-f' ;;
+		-r|--root)
+			shift
+			destdir=$1
+			if [ -z $destdir ]; then
+				echo "-r option requires parameter <directory>"
+				exit 1
+			fi
+			;;
         -h|--help) help_and_exit ;;
         -*) echo "invalid option: $1" >&2; exit 1 ;;
     esac

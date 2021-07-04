@@ -3,8 +3,8 @@
 set -e
 
 [ -d "$statedir" ]
-cafile="$statedir/java-cacerts"
-cafile_gcj="$statedir/gcj-cacerts"
+cafile="$destdir/$statedir/java-cacerts"
+cafile_gcj="$destdir/$statedir/gcj-cacerts"
 
 
 for i in "$@"; do
