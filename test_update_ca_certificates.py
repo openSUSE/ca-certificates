@@ -51,9 +51,10 @@ def test_prints_help(container):
         container.run_expect([0], "/bin/update-ca-certificates --help").stdout
         == """USAGE: /bin/update-ca-certificates [OPTIONS]
 OPTIONS:
-  --verbose, -v     verbose output
-  --fresh, -f       start from scratch
-  --help, -h        this screen
+  --verbose, -v       verbose output
+  --root <Directory>  Root directory to use (default: /)
+  --fresh, -f         start from scratch
+  --help, -h          this screen
 """
     )
 

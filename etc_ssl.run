@@ -6,7 +6,7 @@
 # Author: Ludwig Nussel
 #
 # update /etc/ssl/certs for compatibility with legacy applications
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -24,7 +24,7 @@
 #
 
 [ -d "$statedir" ]
-etccertsdir="/etc/ssl/certs"
+etccertsdir="${destdir}/etc/ssl/certs"
 pemdir="$statedir/pem"
 
 help_and_exit()
@@ -46,8 +46,8 @@ case "$1" in
     -*) echo "invalid option: $1" >&2; exit 1 ;;
 esac
 
-mkdir -p "$pemdir"
-trust extract --purpose=server-auth --filter=ca-anchors --format=pem-directory-hash -f "$pemdir"
+mkdir -p "${destdir}$pemdir"
+trust extract --purpose=server-auth --filter=ca-anchors --format=pem-directory-hash -f "${destdir}$pemdir"
 
 # fix up /etc/ssl/certs if it's not a link pointing to /var/lib/ca-certificates/pem
 if ! [ -L "$etccertsdir" -a "`readlink $etccertsdir`" = "../..$pemdir" ]; then

@@ -3,7 +3,7 @@
 set -e
 
 [ -d "$statedir" ]
-cadir="$statedir/openssl"
+cadir="$destdir/$statedir/openssl"
 
 
 for i in "$@"; do
