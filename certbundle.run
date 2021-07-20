@@ -19,7 +19,7 @@ if [ -z "$fresh" -a "$cafile" -nt "$cadir" ]; then
 	exit 0
 fi
 [ -z "$verbose" ] || echo "creating $cafile ..."
-trust extract --format=pem-bundle --purpose=server-auth --filter=ca-anchors $cafile.tmp
+trust extract --format=pem-bundle --purpose=server-auth --filter=ca-anchors --overwrite $cafile.tmp
 cat - $cafile.tmp > "$cafile.new" <<EOF
 #
 # automatically created by $0. Do not edit!

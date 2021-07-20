@@ -3,7 +3,7 @@
 # update-ca-certificates
 #
 # Copyright (c) 2010,2013 SUSE Linux Products GmbH
-# Copyright (c) 2020 SUSE LLC
+# Copyright (c) 2020,2021 SUSE LLC
 # Author: Ludwig Nussel
 #
 # Inspired by Debian's update-ca-certificates
@@ -64,6 +64,13 @@ esac
 rm -f /etc/pki/trust/.updated
 
 mkdir -p "$statedir"
+# serialize calls if we can
+if [ -z "$_CA_CERTIFICATES_LOCKED" -a -x /usr/bin/flock ]; then
+    export _CA_CERTIFICATES_LOCKED="1"
+    exec /usr/bin/flock "$statedir" "$0" "$@"
+    echo "failed to lock $statedir\n" >&2
+    exit 1
+fi
 
 while read s f; do
     if [ -L "$f" -a "`readlink "$f"`" = "/dev/null" ]; then
