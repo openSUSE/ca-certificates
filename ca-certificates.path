@@ -5,9 +5,6 @@ After=local-fs.target
 [Path]
 Unit=ca-certificates.service
 PathExists=/etc/pki/trust/.updated
-PathChanged=/usr/share/pki/trust
-PathChanged=/usr/share/pki/trust/anchors
-PathChanged=/usr/share/pki/trust/blacklist
 PathChanged=/etc/pki/trust
 PathChanged=/etc/pki/trust/anchors
 PathChanged=/etc/pki/trust/blacklist
