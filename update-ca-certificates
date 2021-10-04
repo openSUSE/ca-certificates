@@ -46,6 +46,7 @@ EOF
     exit 0
 }
 
+args=("$@")
 for arg in "$@"; do
     case "$arg" in
         -v|--verbose) verbose='-v' ;;
@@ -75,12 +76,15 @@ case "${TRANSACTIONAL_UPDATE,,*}" in
 esac
 rm -f /etc/pki/trust/.updated
 
-mkdir -p "$statedir"
+export destdir
+
+mkdir -p "$destdir/$statedir"
 # serialize calls if we can
 if [ -z "$_CA_CERTIFICATES_LOCKED" -a -x /usr/bin/flock ]; then
     export _CA_CERTIFICATES_LOCKED="1"
-    exec /usr/bin/flock "$statedir" "$0" "$@"
-    echo "failed to lock $statedir\n" >&2
+    set -- "${args[@]}"
+    exec /usr/bin/flock "$destdir/$statedir" "$0" "$@"
+    echo "failed to lock $destdir/$statedir\n" >&2
     exit 1
 fi
 
