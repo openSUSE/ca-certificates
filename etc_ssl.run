@@ -46,7 +46,7 @@ case "$1" in
     -*) echo "invalid option: $1" >&2; exit 1 ;;
 esac
 
-mkdir -p "${destdir}$pemdir"
+install -d -m 0755 "${destdir}$pemdir"
 trust extract --purpose=server-auth --filter=ca-anchors --format=pem-directory-hash -f "${destdir}$pemdir"
 
 # fix up /etc/ssl/certs if it's not a link pointing to /var/lib/ca-certificates/pem
@@ -55,5 +55,6 @@ if ! [ -L "$etccertsdir" -a "`readlink $etccertsdir`" = "../..$pemdir" ]; then
     if [ -d "$etccertsdir" ]; then
 	mv -Tv --backup=numbered "$etccertsdir" "$etccertsdir.old"
     fi
+    install -d -m 0755 "${etccertsdir%/*}"
     ln -Tsv --backup=numbered "../..$pemdir" "$etccertsdir"
 fi
