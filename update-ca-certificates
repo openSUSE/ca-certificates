@@ -47,20 +47,22 @@ EOF
 }
 
 args=("$@")
-for arg in "$@"; do
-    case "$arg" in
-        -v|--verbose) verbose='-v' ;;
-        -f|--fresh) fresh='-f' ;;
-		-r|--root)
-			shift
-			destdir=$1
-			if [ -z $destdir ]; then
-				echo "-r option requires parameter <directory>"
-				exit 1
-			fi
-			;;
-        -h|--help) help_and_exit ;;
-        -*) echo "invalid option: $1" >&2; exit 1 ;;
+while [ $# -gt 0 ]; do
+    param="$1"
+    arg="$2"
+    test "$arg" = "${arg#-}" || arg=
+    shift
+    case "$param" in
+	-v|--verbose) verbose='-v' ;;
+	-f|--fresh) fresh='-f' ;;
+	-r|--root) destdir="$arg"; shift
+	    if [ -z "$destdir" ]; then
+		echo "-r option requires parameter <directory>"
+		exit 1
+	    fi
+	;;
+	-h|--help) help_and_exit ;;
+	-*) echo "invalid option: $param" >&2; exit 1 ;;
     esac
 done
 
@@ -78,7 +80,7 @@ rm -f /etc/pki/trust/.updated
 
 export destdir
 
-mkdir -p "$destdir/$statedir"
+install -d -m 0755 "$destdir/$statedir"
 # serialize calls if we can
 if [ -z "$_CA_CERTIFICATES_LOCKED" -a -x /usr/bin/flock ]; then
     export _CA_CERTIFICATES_LOCKED="1"
@@ -108,3 +110,4 @@ while read s f; do
     fi
     "$f" $fresh $verbose
 done < <(find_hooks|sort -k 1,1 -u)
+chmod 0555 "$destdir/$statedir"
