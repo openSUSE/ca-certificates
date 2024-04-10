@@ -1,0 +1,14 @@
+[Unit]
+Description=Initialize ca-certificates cache in /var/lib/ca-certificates
+Documentation=man:update-ca-certificates(7)
+RequiresMountsFor=/var
+ConditionPathExists=!/var/lib/ca-certificates/pem
+Wants=local-fs.target
+Before=ca-certificates.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/update-ca-certificates
+
+[Install]
+WantedBy=sysinit.target

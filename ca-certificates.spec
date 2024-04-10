@@ -90,21 +90,21 @@ ln -s %{cabundle} %{buildroot}%{ssletcdir}/ca-bundle.pem
 install -D -m 444 /dev/null %{buildroot}/var/lib/ca-certificates/java-cacerts
 
 %pre
-%service_add_pre ca-certificates.path ca-certificates.service
+%service_add_pre ca-certificates.path ca-certificates.service ca-certificates-setup.service
 
 %post
 # force rebuilding all certificate stores.
 update-ca-certificates -f || true
-%service_add_post ca-certificates.path ca-certificates.service
+%service_add_post ca-certificates.path ca-certificates.service ca-certificates-setup.service
 
 %preun
-%service_del_preun ca-certificates.path ca-certificates.service
+%service_del_preun ca-certificates.path ca-certificates.service ca-certificates-setup.service
 
 %postun
 if [ "$1" -eq 0 ]; then
 	rm -rf /var/lib/ca-certificates/pem /var/lib/ca-certificates/openssl
 fi
-%service_del_postun ca-certificates.path ca-certificates.service
+%service_del_postun ca-certificates.path ca-certificates.service ca-certificates-setup.service
 
 %clean
 rm -rf %{buildroot}
