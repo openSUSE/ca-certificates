@@ -3,8 +3,9 @@
 
 set -e
 
-cafile="/var/lib/ca-certificates/ca-bundle.pem"
-cadir="/var/lib/ca-certificates/pem"
+[ -d "$statedir" ]
+cafile="$statedir/ca-bundle.pem"
+cadir="$statedir/pem"
 
 for i in "$@"; do
 	if [ "$i" = "-f" ]; then
@@ -18,7 +19,8 @@ if [ -z "$fresh" -a "$cafile" -nt "$cadir" ]; then
 	exit 0
 fi
 [ -z "$verbose" ] || echo "creating $cafile ..."
-cat > "$cafile.new" <<EOF
+trust extract --format=pem-bundle --purpose=server-auth --filter=ca-anchors --overwrite $cafile.tmp
+cat - $cafile.tmp > "$cafile.new" <<EOF
 #
 # automatically created by $0. Do not edit!
 #
@@ -31,7 +33,5 @@ cat > "$cafile.new" <<EOF
 # - gnutls: gnutls_certificate_set_x509_system_trust(cred)
 #
 EOF
-trust extract --format=pem-bundle --purpose=server-auth --filter=ca-anchors $cafile.tmp
-cat $cafile.tmp >> $cafile.new
 rm -f $cafile.tmp
-mv "$cafile.new" "$cafile"
+mv -f "$cafile.new" "$cafile"
