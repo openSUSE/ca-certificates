@@ -1,26 +1,31 @@
-#!/bin/bash
+#!/bin/sh
 # vim: syntax=sh
 
 set -e
 
 [ -d "$statedir" ]
-cafile="$destdir/$statedir/ca-bundle.pem"
-cadir="$destdir/$statedir/pem"
+cafile="${destdir}${statedir}/ca-bundle.pem"
+cadir="${destdir}${statedir}/pem"
 
 for i in "$@"; do
-    if [ "$i" = "-f" ]; then
-	fresh=1
-    elif [ "$i" = "-v" ]; then
-	verbose=1
-    fi
+	if [ "$i" = "-f" ]; then
+		fresh=1
+	elif [ "$i" = "-v" ]; then
+		verbose=1
+	fi
 done
 
-if [ -z "$fresh" -a "$cafile" -nt "$cadir" ]; then
-    exit 0
+last_modified ()
+{
+	stat --printf '%Y' "$1"
+}
+
+if [ -z "$fresh" ] && [ "$(last_modified "$cafile")" -gt "$(last_modified "$cadir")" ]; then
+	exit 0
 fi
 [ -z "$verbose" ] || echo "creating $cafile ..."
-trust extract --format=pem-bundle --purpose=server-auth --filter=ca-anchors --overwrite $cafile.tmp
-cat - $cafile.tmp > "$cafile.new" <<EOF
+trust extract --format=pem-bundle --purpose=server-auth --filter=ca-anchors --overwrite "$cafile.tmp"
+cat - "$cafile.tmp" > "$cafile.new" <<EOF
 #
 # automatically created by $0. Do not edit!
 #
@@ -33,10 +38,10 @@ cat - $cafile.tmp > "$cafile.new" <<EOF
 # - gnutls: gnutls_certificate_set_x509_system_trust(cred)
 #
 EOF
-rm -f $cafile.tmp
+rm -f "$cafile.tmp"
 mv -f "$cafile.new" "$cafile"
-if ! test -e $destdir/etc/ssl/ca-bundle.pem && ! test -L $destdir/etc/ssl/ca-bundle.pem; then
-    [ -z "$verbose" ] || echo "restoring $destdir/etc/ssl/ca-bundle.pem ..."
-    install -d -m 0755 $destdir/etc/ssl
-    ln -s ../../var/lib/ca-certificates/ca-bundle.pem $destdir/etc/ssl/ca-bundle.pem
+if ! test -e "$destdir/etc/ssl/ca-bundle.pem" && ! test -L "$destdir/etc/ssl/ca-bundle.pem"; then
+	[ -z "$verbose" ] || echo "restoring $destdir/etc/ssl/ca-bundle.pem ..."
+	install -d -m 0755 "$destdir/etc/ssl"
+	ln -s ../../var/lib/ca-certificates/ca-bundle.pem "$destdir/etc/ssl/ca-bundle.pem"
 fi

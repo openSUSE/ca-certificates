@@ -1,9 +1,10 @@
-#!/bin/bash
+#!/bin/sh
 #
 # update-ca-certificates
 #
 # Copyright (c) 2010,2013 SUSE Linux Products GmbH
 # Copyright (c) 2020,2021 SUSE LLC
+# Copyright (c) 2025 Georg Pfuetzenreuter
 # Author: Ludwig Nussel
 #
 # Inspired by Debian's update-ca-certificates
@@ -35,7 +36,7 @@ export statedir
 
 help_and_exit()
 {
-    cat <<-EOF
+	cat <<-EOF
 	USAGE: $0 [OPTIONS]
 	OPTIONS:
 	  --verbose, -v       verbose output
@@ -43,71 +44,75 @@ help_and_exit()
 	  --fresh, -f         start from scratch
 	  --help, -h          this screen
 EOF
-    exit 0
+	exit 0
 }
 
-args=("$@")
+args="$*"
+
 while [ $# -gt 0 ]; do
-    param="$1"
-    arg="$2"
-    test "$arg" = "${arg#-}" || arg=
-    shift
-    case "$param" in
-	-v|--verbose) verbose='-v' ;;
-	-f|--fresh) fresh='-f' ;;
-	-r|--root) destdir="$arg"; shift
-	    if [ -z "$destdir" ]; then
-		echo "-r option requires parameter <directory>"
-		exit 1
-	    fi
-	;;
-	-h|--help) help_and_exit ;;
-	-*) echo "invalid option: $param" >&2; exit 1 ;;
-    esac
+	param="$1"
+	arg="$2"
+	test "$arg" = "${arg#-}" || arg=
+	shift
+	case "$param" in
+		-v|--verbose) verbose='-v' ;;
+		-f|--fresh) fresh='-f' ;;
+		-r|--root) destdir="$arg"; shift
+			if [ -z "$destdir" ]; then
+				echo "-r option requires parameter <directory>"
+				exit 1
+			fi
+			;;
+		-h|--help) help_and_exit ;;
+		-*) echo "invalid option: $param" >&2; exit 1 ;;
+	esac
 done
 
 # set sane umask
-umask 0222;
+umask 0222
 
-case "${TRANSACTIONAL_UPDATE,,*}" in
-    true|yes|1)
-	[ -z "$verbose" ] || echo "transactional update in progress, not running any scripts" >&2
-	> /etc/pki/trust/.updated
-	exit 0
+case "${TRANSACTIONAL_UPDATE}" in
+	true|TRUE|yes|YES|1)
+		[ -z "$verbose" ] || echo "transactional update in progress, not running any scripts" >&2
+		true > /etc/pki/trust/.updated
+		exit 0
 	;;
 esac
 rm -f /etc/pki/trust/.updated
 
 export destdir
 
-install -d -m 0755 "$destdir/$statedir"
+install -d -m 0755 "${destdir}${statedir}"
 # serialize calls if we can
-if [ -z "$_CA_CERTIFICATES_LOCKED" -a -x /usr/bin/flock ]; then
-    export _CA_CERTIFICATES_LOCKED="1"
-    set -- "${args[@]}"
-    exec /usr/bin/flock "$destdir/$statedir" "$0" "$@"
-    echo "failed to lock $destdir/$statedir\n" >&2
-    exit 1
+if [ -z "$_CA_CERTIFICATES_LOCKED" ] && [ -x /usr/bin/flock ]; then
+	export _CA_CERTIFICATES_LOCKED="1"
+	# shellcheck disable=SC2086 # expected splitting
+	set -- $args
+	exec /usr/bin/flock "${destdir}${statedir}" "$0" "$@"
+	printf 'failed to lock %s/%s\n\n' "$destdir" "$statedir" >&2
+	exit 1
 fi
 
-function find_hooks {
-    shopt -s nullglob
-    for hooksdir in $hooksdir1 $hooksdir2; do
-	for f in "$hooksdir"/*.run; do
-	    if [ -L "$f" ] || [ -f "$f" ]; then
-		echo "${f##*/}" "$f"
-	    fi
+find_hooks()
+{
+	for hooksdir in $hooksdir1 $hooksdir2; do
+		for f in "$hooksdir"/*.run; do
+			if [ -L "$f" ] || [ -f "$f" ]; then
+				echo "${f##*/}" "$f"
+			fi
+		done
 	done
-    done
 }
 
-while read s f; do
-    if [ -L "$f" -a "`readlink "$f"`" = "/dev/null" ]; then
-	[ -z "$verbose" ] || echo "skipping $f"
-	continue
-    else
-	[ -z "$verbose" ] || echo "running $f .."
-    fi
-    "$f" $fresh $verbose
-done < <(find_hooks|sort -k 1,1 -u)
-chmod 0555 "$destdir/$statedir"
+
+find_hooks | sort -k 1,1 -u | while read _ f; do
+	if [ -L "$f" ] && [ "$(readlink "$f")" = '/dev/null' ]; then
+		[ -z "$verbose" ] || echo "skipping $f"
+		continue
+	else
+		[ -z "$verbose" ] || echo "running $f .."
+	fi
+	"$f" $fresh $verbose
+done
+
+chmod 0555 "${destdir}${statedir}"
