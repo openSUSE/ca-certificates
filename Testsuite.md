@@ -8,21 +8,21 @@ Python using [pytest](https://pytest.org) and
 ## Prerequisites
 
 - Python >= 3.6.2
-- [Poetry](https://python-poetry.org/)
+- [pytest](https://docs.pytest.org/en/stable/), ideally with xdist
+- [testinfra](https://testinfra.readthedocs.io/).
 - [Podman](https://podman.io/)
 
 
 ## Running the tests
 
-First, initialize the virtualenv and install the dependencies via `poetry
-install`. Now you can run the tests:
+Install dependencies (e.g. in a virtualenv), then run the tests:
 
 ```ShellSession
-$ poetry run pytest -vv -n $(nproc)
+$ pytest -vv -n $(nproc)
 $ # only run the tests on Leap:
-$ poetry run pytest -vv -n $(nproc) --container leap
+$ pytest -vv -n $(nproc) --container leap
 $ # run only a certain test function
-$ poetry run pytest -vv -k prints_help -n $(nproc)
+$ pytest -vv -k prints_help -n $(nproc)
 ```
 
 

@@ -17,9 +17,9 @@ jobs:
       - name: set up Python
         uses: actions/setup-python@v2
       - name: install dependencies
-        run: pip install --user poetry && poetry install
+        run: pip install --user black
       - name: run tests
-        run: poetry run black --check --diff *py
+        run: black --check --diff *py
 
   tests:
     name: Test containers
@@ -30,6 +30,6 @@ jobs:
       - name: set up Python
         uses: actions/setup-python@v2
       - name: install dependencies
-        run: pip install --user poetry && poetry install
+        run: pip install --user pytest-xdist testinfra
       - name: run tests
-        run: poetry run pytest -vv -n $(nproc)
+        run: pytest -vv -n $(nproc)
