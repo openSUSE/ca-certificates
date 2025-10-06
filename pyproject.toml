@@ -1,21 +1,24 @@
-[tool.poetry]
+[project]
 name = "ca-certificates"
 version = "2"
 description = "Utilities for system wide CA certificate installation"
-authors = ["Ludwig Nussel <ludwig.nussel@suse.de>"]
+authors = [{ name = "Ludwig Nussel", email = "ludwig.nussel@suse.de" }]
 license = "GPL-2.0"
+package-mode = false
+dependecies = [
+    "python>=3.6.2"
+]
 
-[tool.poetry.dependencies]
-python = ">= 3.6.2"
-
-[tool.poetry.dev-dependencies]
-pytest-testinfra = "^6.3.0"
-pytest = "^6.2.4"
-black = "^21.5b1"
-pytest-xdist = "^2.2.1"
+[dependecy-groups]
+dev = [
+   "pytest-testinfra>=6.3.0",
+   "pytest>=6.2.4",
+   "black>=21.5b1",
+   "pytest-xdist>=2.2.1"
+]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.black]
