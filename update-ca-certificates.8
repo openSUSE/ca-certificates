@@ -30,7 +30,7 @@ resp /etc/pki/trust/anchors but there could be other plugins that
 serve as source for certificates as well.
 .PP
 To blacklist certificates symlinks to the respective certificates
-can be placed in /etc/pki/trust/blacklist
+can be placed in /etc/pki/trust/blocklist
 .PP
 \fBupdate-ca-certificates\fP invokes
 custom hooks in /usr/lib/ca-certificates/update.d/*.run and
@@ -56,13 +56,13 @@ Fresh updates. Don't update stores incrementally but create from scratch.
 .I /usr/share/pki/trust/anchors
 Directory of CA certificate trust anchors.
 .TP
-.I /usr/share/pki/trust/blacklist
+.I /usr/share/pki/trust/blocklist
 Directory of blacklisted CA certificates
 .TP
 .I /etc/pki/trust/anchors
 Directory of CA certificate trust anchors for use by the admin
 .TP
-.I /etc/pki/trust/blacklist
+.I /etc/pki/trust/blocklist
 Directory of blacklisted CA certificates for use by the admin
 .SH SEE ALSO
 .BR c_rehash (1),

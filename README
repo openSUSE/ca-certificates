@@ -41,7 +41,7 @@ Differences to previous versions on openSUSE
   openssl's 'trusted' format.
 
 - /etc/ca-certificates.conf is no longer supported. Just symlink the
-  certificates you don't want to /etc/pki/trust/blacklist.
+  certificates you don't want to /etc/pki/trust/blocklist.
 
 Differences to Debian
 =====================
