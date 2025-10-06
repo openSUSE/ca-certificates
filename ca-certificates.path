@@ -7,7 +7,7 @@ Unit=ca-certificates.service
 PathExists=/etc/pki/trust/.updated
 PathChanged=/etc/pki/trust
 PathChanged=/etc/pki/trust/anchors
-PathChanged=/etc/pki/trust/blacklist
+PathChanged=/etc/pki/trust/blocklist
 
 [Install]
 WantedBy=default.target
