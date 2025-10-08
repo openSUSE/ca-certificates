@@ -8,7 +8,7 @@ HOOK_ARGS_PATH = "/hook_args"
 LISTENER_SCRIPT_DEST = HOOKSDIR2 + "/foo.run"
 
 LISTENER_SCRIPT = (
-    r"""#!/bin/bash
+    r"""#!/bin/sh
 echo "\$@" > """
     + HOOK_ARGS_PATH
 )
@@ -94,7 +94,7 @@ def test_runs_the_hooks_in_hookdirs(container, flag):
 def test_prefers_hooks_in_etc(container):
     for hookdir in (HOOKSDIR1, HOOKSDIR2):
         dest = hookdir + "/" + BAR_HOOK
-        container.run_expect([0], 'echo "#!/bin/bash" >' + dest)
+        container.run_expect([0], 'echo "#!/bin/sh" >' + dest)
         container.run_expect([0], "chmod +x " + dest)
 
     res = container.run_expect([0], "/bin/update-ca-certificates -v")
@@ -132,7 +132,7 @@ def test_ignores_hooks_in_subdirectories(container, hookdir):
     subdir = hookdir + "/" + "test"
     dest = subdir + "/" + BAR_HOOK
     container.run_expect([0], "mkdir " + subdir)
-    container.run_expect([0], 'echo "#!/bin/bash" >' + dest)
+    container.run_expect([0], 'echo "#!/bin/sh" >' + dest)
     container.run_expect([0], "chmod +x " + dest)
     container.run_expect([0], dest)
 
@@ -145,7 +145,7 @@ def test_ignores_hooks_in_subdirectories(container, hookdir):
 def test_runs_hooks_in_sorted_order(container):
     hooks = [HOOKSDIR1 + "/" + hook for hook in ("10foo.run", "20bar.run")]
     for hook in hooks:
-        container.run_expect([0], 'echo "#!/bin/bash" >' + hook)
+        container.run_expect([0], 'echo "#!/bin/sh" >' + hook)
         container.run_expect([0], "chmod +x " + hook)
         container.run_expect([0], hook)
 

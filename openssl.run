@@ -1,21 +1,21 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
 
 [ -d "$statedir" ]
-cadir="$destdir/$statedir/openssl"
+cadir="${destdir}${statedir}/openssl"
 
 
 for i in "$@"; do
-    if [ "$i" = "-f" ]; then
-	fresh=1
-    elif [ "$i" = "-v" ]; then
-	verbose=1
-    fi
+	if [ "$i" = "-f" ]; then
+		fresh=1
+	elif [ "$i" = "-v" ]; then
+		verbose=1
+	fi
 done
 
 [ -z "$verbose" ] || echo "creating $cadir ..."
 install -d -m 0755 -p "$cadir"
-trust extract --format=openssl-directory --filter=ca-anchors --overwrite $cadir
+trust extract --format=openssl-directory --filter=ca-anchors --overwrite "$cadir"
 
 # vim: syntax=sh

@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/sh -e
 # vim:syntax=sh
 #
 # Copyright (c) 2010,2013 SUSE Linux Products GmbH
@@ -29,32 +29,32 @@ pemdir="$statedir/pem"
 
 help_and_exit()
 {
-    cat <<-EOF
+	cat <<-EOF
 	USAGE: $0 [OPTIONS]
 	OPTIIONS:
 	  --verbose, -v     verbose output
 	  --fresh, -f       start from scratch
 	  --help, -h        this screen
 EOF
-    exit 0
+	exit 0
 }
 
 case "$1" in
-    -v|--verbose) verbose='-v'; shift ;;
-    -f|--fresh) fresh='-f'; shift ;;
-    -h|--help) help_and_exit ;;
-    -*) echo "invalid option: $1" >&2; exit 1 ;;
+	-v|--verbose) verbose='-v'; shift ;;
+	-f|--fresh) fresh='-f'; shift ;;
+	-h|--help) help_and_exit ;;
+	-*) echo "invalid option: $1" >&2; exit 1 ;;
 esac
 
 install -d -m 0755 "${destdir}$pemdir"
 trust extract --purpose=server-auth --filter=ca-anchors --format=pem-directory-hash -f "${destdir}$pemdir"
 
 # fix up /etc/ssl/certs if it's not a link pointing to /var/lib/ca-certificates/pem
-if ! [ -L "$etccertsdir" -a "`readlink $etccertsdir`" = "../..$pemdir" ]; then
-    echo "Warning: $etccertsdir needs to be a link to ../..$pemdir, fixing" >&2
-    if [ -d "$etccertsdir" ]; then
-	mv -Tv --backup=numbered "$etccertsdir" "$etccertsdir.old"
-    fi
-    install -d -m 0755 "${etccertsdir%/*}"
-    ln -Tsv --backup=numbered "../..$pemdir" "$etccertsdir"
+if ! [ -L "$etccertsdir" ] && [ "$(readlink "$etccertsdir")" = "../..$pemdir" ]; then
+	echo "Warning: $etccertsdir needs to be a link to ../..$pemdir, fixing" >&2
+	if [ -d "$etccertsdir" ]; then
+		mv -Tv --backup=numbered "$etccertsdir" "$etccertsdir.old"
+	fi
+	install -d -m 0755 "${etccertsdir%/*}"
+	ln -Tsv --backup=numbered "../..$pemdir" "$etccertsdir"
 fi
