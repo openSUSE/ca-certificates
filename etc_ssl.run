@@ -51,7 +51,7 @@ trust extract --purpose=server-auth --filter=ca-anchors --format=pem-directory-h
 
 # fix up /etc/ssl/certs if it's not a link pointing to /var/lib/ca-certificates/pem
 if ! [ -L "$etccertsdir" -a "`readlink $etccertsdir`" = "../..$pemdir" ]; then
-    echo "Warning: $etccertsdir needs to be a link to ../..$pemdir, fixing" >&2
+    [ -z "$verbose" ] || echo "restoring $etccertsdir ..."
     if [ -d "$etccertsdir" ]; then
 	mv -Tv --backup=numbered "$etccertsdir" "$etccertsdir.old"
     fi
