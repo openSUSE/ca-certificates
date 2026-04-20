@@ -44,6 +44,9 @@ URL:            https://github.com/openSUSE/ca-certificates
 Source0:        ca-certificates-%{version}.tar
 BuildRequires:  p11-kit-devel
 #
+# update-ca-certificates requires mv and ln from coreutils,
+# it does not work with busybox or so (--backup=numbered)
+Requires:       coreutils
 Requires:       %{_bindir}/readlink
 Requires:       p11-kit
 Requires:       p11-kit-tools >= 0.23.1
