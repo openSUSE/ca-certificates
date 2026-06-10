@@ -1,10 +1,11 @@
-#!/bin/bash
+#!/bin/sh
 # vim:syntax=sh noexpandtab
 #
 # update-ca-certificates
 #
 # Copyright (c) 2010,2013 SUSE Linux Products GmbH
-# Copyright (c) 2020,2021 SUSE LLC
+# Copyright (c) 2020-2026 SUSE LLC
+# Copyright (c) 2025 Georg Pfuetzenreuter
 # Author: Ludwig Nussel
 #
 # Inspired by Debian's update-ca-certificates
@@ -47,7 +48,7 @@ help_and_exit()
 	exit 0
 }
 
-args=("$@")
+args="$*"
 while [ $# -gt 0 ]; do
 	param="$1"
 	arg="$2"
@@ -70,10 +71,10 @@ done
 # set sane umask
 umask 0222;
 
-case "${TRANSACTIONAL_UPDATE,,*}" in
-	true|yes|1)
+case "${TRANSACTIONAL_UPDATE}" in
+	true|TRUE|yes|YES|1)
 		[ -z "$verbose" ] || echo "transactional update in progress, not running any scripts" >&2
-		> /etc/pki/trust/.updated
+		: > /etc/pki/trust/.updated
 		exit 0
 	;;
 esac
@@ -83,16 +84,17 @@ export destdir
 
 install -d -m 0755 "${destdir}${statedir}"
 # serialize calls if we can
-if [ -z "$_CA_CERTIFICATES_LOCKED" -a -x /usr/bin/flock ]; then
+if [ -z "$_CA_CERTIFICATES_LOCKED" ] && [ -x /usr/bin/flock ]; then
 	export _CA_CERTIFICATES_LOCKED="1"
-	set -- "${args[@]}"
+	# shellcheck disable=SC2086 # expected splitting
+	set -- $args
 	exec /usr/bin/flock "${destdir}${statedir}" "$0" "$@"
-	echo "failed to lock ${destdir}${statedir}\n" >&2
+	printf 'failed to lock %s/%s\n\n' "$destdir" "$statedir" >&2
 	exit 1
 fi
 
-function find_hooks {
-	shopt -s nullglob
+find_hooks()
+{
 	for hooksdir in $hooksdir1 $hooksdir2; do
 		for f in "$hooksdir"/*.run; do
 			if [ -L "$f" ] || [ -f "$f" ]; then
@@ -102,13 +104,15 @@ function find_hooks {
 	done
 }
 
-while read s f; do
-	if [ -L "$f" -a "`readlink "$f"`" = "/dev/null" ]; then
+# shellcheck disable=SC2162 # no backslashes expected
+find_hooks | sort -k 1,1 -u | while read _ f; do
+	if [ -L "$f" ] && [ "$(readlink "$f")" = '/dev/null' ]; then
 		[ -z "$verbose" ] || echo "skipping $f"
 		continue
 	else
 		[ -z "$verbose" ] || echo "running $f .."
 	fi
 	"$f" $fresh $verbose
-done < <(find_hooks|sort -k 1,1 -u)
+done
+
 chmod 0555 "${destdir}${statedir}"

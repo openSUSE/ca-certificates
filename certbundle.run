@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # vim: syntax=sh noexpandtab
 
 set -e
@@ -15,7 +15,13 @@ for i in "$@"; do
 	fi
 done
 
-if [ -z "$fresh" -a "$cafile" -nt "$cadir" ]; then
+last_modified()
+{
+	# -c is available in both busybox and coreutils
+	stat -c '%Y' "$1"
+}
+
+if [ -z "$fresh" ] && [ "$(last_modified "$cafile")" -gt "$(last_modified "$cadir")" ]; then
 	exit 0
 fi
 [ -z "$verbose" ] || echo "creating $cafile ..."
