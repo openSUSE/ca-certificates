@@ -1,4 +1,5 @@
 #!/bin/bash
+# vim:syntax=sh noexpandtab
 
 set -e
 
@@ -6,17 +7,14 @@ set -e
 cafile="$destdir/$statedir/java-cacerts"
 cafile_gcj="$destdir/$statedir/gcj-cacerts"
 
-
 for i in "$@"; do
-    if [ "$i" = "-f" ]; then
-	fresh=1
-    elif [ "$i" = "-v" ]; then
-	verbose=1
-    fi
+	if [ "$i" = "-f" ]; then
+		fresh=1
+	elif [ "$i" = "-v" ]; then
+		verbose=1
+	fi
 done
 
 [ -z "$verbose" ] || echo "creating $cafile ..."
 trust extract --format=java-cacerts --purpose=server-auth --filter=ca-anchors --overwrite $cafile.new
 mv $cafile.new $cafile
-
-# vim: syntax=sh
