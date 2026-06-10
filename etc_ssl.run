@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/sh -e
 # vim:syntax=sh noexpandtab
 #
 # Copyright (c) 2010,2013 SUSE Linux Products GmbH
