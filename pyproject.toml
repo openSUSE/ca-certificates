@@ -1,6 +1,2 @@
-[tool.black]
-line-length = 79
-target-version = ['py36']
-
 [tool.pytest.ini_options]
 xfail_strict = true
