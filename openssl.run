@@ -17,4 +17,4 @@ done
 
 [ -z "$verbose" ] || echo "creating $cadir ..."
 install -d -m 0755 -p "$cadir"
-trust extract --format=openssl-directory --filter=ca-anchors --overwrite $cadir
+trust extract --format=openssl-directory --filter=ca-anchors --overwrite "$cadir"

@@ -25,8 +25,8 @@ if [ -z "$fresh" ] && [ "$(last_modified "$cafile")" -gt "$(last_modified "$cadi
 	exit 0
 fi
 [ -z "$verbose" ] || echo "creating $cafile ..."
-trust extract --format=pem-bundle --purpose=server-auth --filter=ca-anchors --overwrite $cafile.tmp
-cat - $cafile.tmp > "$cafile.new" <<EOF
+trust extract --format=pem-bundle --purpose=server-auth --filter=ca-anchors --overwrite "$cafile.tmp"
+cat - "$cafile.tmp" > "$cafile.new" <<EOF
 #
 # automatically created by $0. Do not edit!
 #
@@ -39,10 +39,10 @@ cat - $cafile.tmp > "$cafile.new" <<EOF
 # - gnutls: gnutls_certificate_set_x509_system_trust(cred)
 #
 EOF
-rm -f $cafile.tmp
+rm -f "$cafile.tmp"
 mv -f "$cafile.new" "$cafile"
-if ! test -e $destdir/etc/ssl/ca-bundle.pem && ! test -L $destdir/etc/ssl/ca-bundle.pem; then
+if ! test -e "$destdir"/etc/ssl/ca-bundle.pem && ! test -L "$destdir"/etc/ssl/ca-bundle.pem; then
 	[ -z "$verbose" ] || echo "restoring $destdir/etc/ssl/ca-bundle.pem ..."
-	install -d -m 0755 $destdir/etc/ssl
-	ln -s ../../var/lib/ca-certificates/ca-bundle.pem $destdir/etc/ssl/ca-bundle.pem
+	install -d -m 0755 "$destdir"/etc/ssl
+	ln -s ../../var/lib/ca-certificates/ca-bundle.pem "$destdir"/etc/ssl/ca-bundle.pem
 fi
