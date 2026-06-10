@@ -4,7 +4,6 @@ from os import path
 import pytest
 import testinfra
 
-
 TUMBLEWEED_CONTAINER = ["registry.opensuse.org/opensuse/tumbleweed:latest"]
 LEAP_CONTAINERS = [
     "registry.opensuse.org/opensuse/leap:15.3",
@@ -80,6 +79,18 @@ def container(request):
             ),
             container_id + ":" + "/bin/update-ca-certificates",
         ],
+    )
+
+    # Create hook directories needed by tests
+    subprocess.check_call(
+        [
+            "podman",
+            "exec",
+            container_id,
+            "mkdir",
+            "-p",
+            "/etc/ca-certificates/update.d",
+        ]
     )
 
     yield testinfra.get_host(f"podman://{container_id}")

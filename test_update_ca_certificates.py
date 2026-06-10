@@ -1,6 +1,5 @@
 import pytest
 
-
 HOOKSDIR1 = "/etc/ca-certificates/update.d"
 HOOKSDIR2 = "/usr/lib/ca-certificates/update.d"
 
