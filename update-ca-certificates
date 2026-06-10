@@ -81,13 +81,13 @@ rm -f /etc/pki/trust/.updated
 
 export destdir
 
-install -d -m 0755 "$destdir/$statedir"
+install -d -m 0755 "${destdir}${statedir}"
 # serialize calls if we can
 if [ -z "$_CA_CERTIFICATES_LOCKED" -a -x /usr/bin/flock ]; then
 	export _CA_CERTIFICATES_LOCKED="1"
 	set -- "${args[@]}"
-	exec /usr/bin/flock "$destdir/$statedir" "$0" "$@"
-	echo "failed to lock $destdir/$statedir\n" >&2
+	exec /usr/bin/flock "${destdir}${statedir}" "$0" "$@"
+	echo "failed to lock ${destdir}${statedir}\n" >&2
 	exit 1
 fi
 
@@ -111,4 +111,4 @@ while read s f; do
 	fi
 	"$f" $fresh $verbose
 done < <(find_hooks|sort -k 1,1 -u)
-chmod 0555 "$destdir/$statedir"
+chmod 0555 "${destdir}${statedir}"
