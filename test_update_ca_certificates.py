@@ -6,11 +6,8 @@ HOOKSDIR2 = "/usr/lib/ca-certificates/update.d"
 HOOK_ARGS_PATH = "/hook_args"
 LISTENER_SCRIPT_DEST = HOOKSDIR2 + "/foo.run"
 
-LISTENER_SCRIPT = (
-    r"""#!/bin/sh
-echo "\$@" > """
-    + HOOK_ARGS_PATH
-)
+LISTENER_SCRIPT = r"""#!/bin/sh
+echo "\$@" > """ + HOOK_ARGS_PATH
 
 BAR_HOOK = "bar.run"
 
