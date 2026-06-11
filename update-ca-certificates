@@ -101,7 +101,7 @@ function find_hooks {
     done
 }
 
-while read s f; do
+find_hooks | sort -k 1,1 -u | while read s f; do
     if [ -L "$f" -a "`readlink "$f"`" = "/dev/null" ]; then
 	[ -z "$verbose" ] || echo "skipping $f"
 	continue
@@ -109,5 +109,5 @@ while read s f; do
 	[ -z "$verbose" ] || echo "running $f .."
     fi
     "$f" $fresh $verbose
-done < <(find_hooks|sort -k 1,1 -u)
+done
 chmod 0555 "$destdir/$statedir"
